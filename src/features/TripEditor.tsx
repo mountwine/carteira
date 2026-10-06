@@ -1,5 +1,11 @@
 import { useState } from "react";
-import type { Trip, User, PlaceData } from "../domain/models";
+import type {
+  Trip,
+  User,
+  PlaceData,
+  Destination,
+  TripMember,
+} from "../domain/models";
 import { persistTrip } from "../adapters/local";
 import {
   ConfirmDiscard,
@@ -10,7 +16,12 @@ import {
 import { TripCover } from "../components/MediaImage";
 import { importPhoto } from "../data/media";
 import { all } from "../data/database";
-import type { AnyEntity } from "../domain/entities";
+import type { AnyEntity, Pending } from "../domain/entities";
+import {
+  buildEditedTrip,
+  newDestination,
+  newTraveler,
+} from "../domain/tripEditing";
 export function TripEditor({
   user,
   trip,
@@ -25,18 +36,16 @@ export function TripEditor({
   const [id] = useState(trip?.id ?? crypto.randomUUID());
   const [name, setName] = useState(trip?.name ?? ""),
     [origin, setOrigin] = useState<PlaceData>(trip?.origin ?? { name: "" }),
-    [destinations, setDestinations] = useState<PlaceData[]>(
-      trip?.destinations.map(
-        (d) => d.place ?? { name: d.city, country: d.country },
-      ) ?? [{ name: "" }],
+    [destinations, setDestinations] = useState<Destination[]>(
+      () => trip?.destinations ?? [newDestination("", "")],
     ),
     [start, setStart] = useState(trip?.startDate ?? ""),
     [end, setEnd] = useState(trip?.endDate ?? ""),
     [cover, setCover] = useState(trip?.cover ?? ""),
     [position, setPosition] = useState(trip?.coverPosition ?? 50),
     [currency, setCurrency] = useState(trip?.currency ?? "USD"),
-    [names, setNames] = useState(
-      trip?.members.map((m) => m.displayName).join("\n") ?? user.name,
+    [members, setMembers] = useState<TripMember[]>(
+      () => trip?.members ?? [newTraveler(user.name, user.id)],
     ),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -49,7 +58,8 @@ export function TripEditor({
     end &&
     end >= start &&
     destinations.length &&
-    destinations.every((d) => d.name.trim())
+    destinations.every((d) => d.city.trim()) &&
+    members.every((m) => m.displayName.trim())
   );
   function touch() {
     setDirty(true);
@@ -59,8 +69,18 @@ export function TripEditor({
     try {
       if (!valid)
         throw new Error("Preencha os campos obrigatórios e revise as datas.");
+      const records = trip ? await all<AnyEntity>("records") : [];
+      // Include durable pending changes when checking removal of a linked traveler.
+      const pending = trip
+        ? await all<{ item?: Pending; items?: Pending[] }>("pending")
+        : [];
+      const pendingRecords = pending.flatMap((row) =>
+        (row.item ? [row.item] : (row.items ?? [])).flatMap((item) =>
+          item.mutation.changes.map((c) => c.record),
+        ),
+      );
       if (trip) {
-        const activities = (await all<AnyEntity>("records")).filter(
+        const activities = records.filter(
           (r) => r.tripId === id && r.kind === "activity" && !r.deleted,
         );
         if (
@@ -74,62 +94,23 @@ export function TripEditor({
             "Existem atividades fora do novo período. Ajuste suas datas no roteiro antes de reduzir a viagem.",
           );
       }
-      const next: Trip = {
-        ...(trip ?? {}),
-        id,
-        name: name.trim(),
-        origin,
-        cover,
-        coverPosition: position,
-        startDate: start,
-        endDate: end,
-        currency,
-        pace: trip?.pace ?? "balanced",
-        isDemo: false,
-        destinations: destinations.map((p, i) => ({
-          ...trip?.destinations.find((d) => d.city === p.name),
-          id:
-            trip?.destinations.find((d) => d.city === p.name)?.id ??
-            crypto.randomUUID(),
-          city: p.name,
-          country: p.country ?? "",
-          place: p,
-          startDate:
-            trip?.destinations.find(
-              (d) =>
-                d.city === p.name && d.startDate >= start && d.startDate <= end,
-            )?.startDate ?? start,
-          endDate:
-            trip?.destinations.find(
-              (d) =>
-                d.city === p.name && d.endDate <= end && d.endDate >= start,
-            )?.endDate ?? end,
-          timezone: trip?.destinations.find((d) => d.city === p.name)?.timezone,
-          transport: [],
-        })),
-        members: names
-          .split("\n")
-          .map((n) => n.trim())
-          .filter(Boolean)
-          .map((displayName, i) => ({
-            userId:
-              trip?.members.find((m) => m.displayName === displayName)
-                ?.userId ??
-              (displayName === user.name || (!trip && i === 0)
-                ? user.id
-                : crypto.randomUUID()),
-            displayName,
-            invitationState: "accepted",
-            preferences: {},
-          })),
-      };
-      if (!next.members.some((m) => m.userId === user.id))
-        next.members.unshift({
-          userId: user.id,
-          displayName: user.name,
-          invitationState: "accepted",
-          preferences: {},
-        });
+      const next = buildEditedTrip(
+        trip,
+        user,
+        {
+          id,
+          name,
+          origin,
+          cover,
+          coverPosition: position,
+          startDate: start,
+          endDate: end,
+          currency,
+          destinations,
+          members,
+        },
+        [...records, ...pendingRecords],
+      );
       persistTrip(next);
       await onSaved(id);
       onClose();
@@ -170,13 +151,22 @@ export function TripEditor({
           }}
         />
         {destinations.map((p, i) => (
-          <div key={i} className="destination-field">
+          <div key={p.id} className="destination-field">
             <PlaceAutocomplete
               label={`Destino ${i + 1}`}
-              value={p}
+              value={p.place ?? { name: p.city, country: p.country }}
               onChange={(place) => {
                 setDestinations((ds) =>
-                  ds.map((d, n) => (n === i ? place : d)),
+                  ds.map((d) =>
+                    d.id === p.id
+                      ? {
+                          ...d,
+                          city: place.name,
+                          country: place.country ?? "",
+                          place,
+                        }
+                      : d,
+                  ),
                 );
                 touch();
               }}
@@ -228,7 +218,7 @@ export function TripEditor({
           type="button"
           className="text-button"
           onClick={() => {
-            setDestinations([...destinations, { name: "" }]);
+            setDestinations([...destinations, newDestination(start, end)]);
             touch();
           }}
         >
@@ -237,10 +227,85 @@ export function TripEditor({
         <DatePicker label="Início" value={start} onChange={setStart} />
         <DatePicker label="Fim" value={end} min={start} onChange={setEnd} />
         <CurrencySelector value={currency} onChange={setCurrency} />
-        <label>
-          Viajantes · um nome por linha
-          <textarea value={names} onChange={(e) => setNames(e.target.value)} />
-        </label>
+        <section aria-label="Viajantes da viagem">
+          <h2>Viajantes</h2>
+          {members.map((member, i) => (
+            <div key={member.userId} className="destination-field">
+              <label>
+                Viajante {i + 1}
+                <input
+                  required
+                  value={member.displayName}
+                  onChange={(e) => {
+                    setMembers((rows) =>
+                      rows.map((row) =>
+                        row.userId === member.userId
+                          ? { ...row, displayName: e.target.value }
+                          : row,
+                      ),
+                    );
+                    touch();
+                  }}
+                />
+              </label>
+              <div className="action-row">
+                <button
+                  type="button"
+                  disabled={i === 0}
+                  onClick={() => {
+                    setMembers((rows) => {
+                      const next = [...rows];
+                      [next[i - 1], next[i]] = [next[i], next[i - 1]];
+                      return next;
+                    });
+                    touch();
+                  }}
+                >
+                  Subir
+                </button>
+                <button
+                  type="button"
+                  disabled={i === members.length - 1}
+                  onClick={() => {
+                    setMembers((rows) => {
+                      const next = [...rows];
+                      [next[i + 1], next[i]] = [next[i], next[i + 1]];
+                      return next;
+                    });
+                    touch();
+                  }}
+                >
+                  Descer
+                </button>
+                <button
+                  type="button"
+                  disabled={member.userId === user.id}
+                  onClick={() => {
+                    setMembers((rows) =>
+                      rows.filter((row) => row.userId !== member.userId),
+                    );
+                    touch();
+                  }}
+                >
+                  Remover
+                </button>
+              </div>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => {
+              setMembers([...members, newTraveler()]);
+              touch();
+            }}
+          >
+            + Adicionar viajante
+          </button>
+          <small>
+            Viajantes com registros vinculados precisam permanecer na viagem.
+          </small>
+        </section>
         <label>
           Capa
           <input

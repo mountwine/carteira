@@ -51,3 +51,44 @@ Não há sincronização entre dispositivos, convite real, exportação/importa�
 ## Repetir a validação
 
 Use `pnpm test`, `pnpm build` e `pnpm preview --port 5173`. Preserve a origem utilizada anteriormente. Refaça os fluxos da tabela em uma viagem de teste, depois recarregue e teste com conexão desativada. Não limpe o armazenamento como parte da atualização. Para Google Places, configure primeiro as variáveis descritas no README.
+
+
+## K01 — validação de 06/10/2026
+
+Escopo exclusivo: preservar identidade e metadados ao editar viagem. Dados
+sintéticos em Vitest/fake-indexeddb e perfil temporário separado do Chrome;
+nenhum banco real ou dado pessoal aberto, migrado ou apagado.
+
+- `pnpm test`: 65/65 testes em oito arquivos, sendo 19 novos em
+  `tests/trip-editing.test.ts`. Cobrem homônimos, IDs/metadados, adição/remoção,
+  subperíodos, vínculos por tipo/autoria, registros arquivados, isolamento,
+  reabertura offline e rejeição de versão desatualizada.
+- `pnpm build`: aprovado com TypeScript e geração de PWA.
+- Checagem estrita separada de `api/places.ts`: aprovada.
+- `git diff --check`: aprovado na validação anterior ao commit.
+- pnpm 11 executado com `--config.verify-deps-before-run=false` para rodar os
+  scripts com as dependências já instaladas, sem reinstalar/remover node_modules;
+  não houve alteração de dependências ou lockfile.
+
+Inspeção automatizada pontual via Playwright/Chrome desktop em **375/402/440 px**:
+salvar sem edição, renomear/reordenar homônimos, conferir IDs/preferências/convites,
+transportes/fusos/datas, preservar outra viagem, recarregar, editar/salvar offline,
+bloquear remoção de viajante com gasto somente na fila durável e rejeitar edição
+com versão antiga. Todos passaram, sem overflow horizontal nem erros JavaScript.
+Screenshots de 375 e 440 px também foram inspecionados visualmente. O roteiro de
+browser foi temporário, não incorporado à suíte Vitest.
+
+Para repetir, use perfil de teste separado e uma viagem sintética com dois
+viajantes homônimos e dois destinos de mesma cidade, IDs e metadados diferentes.
+Salve sem mudanças; renomeie e reordene cada linha; confira os objetos persistidos
+e os vínculos em atividades/gastos/malas. Adicione e remova somente linhas novas
+sem vínculos. Remova um viajante vinculado e confirme alerta sem salvar; repita
+com vínculo na fila. Reabra e salve offline após carregar a página. Em duas
+janelas, salve primeiro em uma e confira que a versão antiga da outra é rejeitada.
+Repita em cada largura, preservando a mesma origem de teste.
+
+Limites: não certifica dispositivo físico, instalação/reload da PWA offline,
+Google autenticado ou recuperação de metadados perdidos antes da correção.
+Não há transação conjunta entre metadados da viagem e entidades; referências são
+checadas no momento da leitura ao salvar. Os demais problemas auditados permanecem
+abertos. A evidência histórica de 05/10/2026 acima não foi sobrescrita.

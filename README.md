@@ -41,6 +41,8 @@ Para iPhone/Android instalado, utilize um endereço HTTPS estável. No Safari: C
 
 Metadados pequenos de viagens, sessão e preferências permanecem no localStorage por compatibilidade; entidades, contas derivadas, imagens, anexos e caches ficam no IndexedDB. Compras e seus gastos são gravados em uma única transação, com vínculo estável e proteção contra duplicidade. Alterações concorrentes em entidades têm controle de versão; conflitos ficam disponíveis para revisão. Não há fila para sincronização remota. Os aliases internos legados `isDemo`/`backendClient` apenas mantêm compatibilidade com o repositório da V1: o primeiro seleciona armazenamento local e o segundo é nulo. Nenhum cliente remoto é construído.
 
+Ao editar viagens, cada viajante e destino mantém seu identificador, inclusive com nomes repetidos e ao renomear/reordenar. Viajantes têm campos individuais e ações para adicionar, reordenar e remover; preferências, estado do convite e vínculos existentes são preservados. A conta atual não pode ser removida. A remoção de viajante com registros ativos vinculados (incluindo alterações pendentes) é bloqueada no salvamento, sem apagar esses registros. Destinos preservam transportes, fusos e datas dentro do período da viagem.
+
 Novos destinos sem fuso verificado usam o relógio do aparelho; fusos explícitos anteriores são preservados, inclusive ao reordenar destinos. Não se inventa um fuso pelo nome da cidade.
 
 A senha usa PBKDF2/SHA-256, sal aleatório e 210.000 iterações; não se grava senha em texto. A chave de recuperação também é derivada. Essa autenticação local não equivale a um cofre criptografado: blobs/registros não são cifrados. Não há backend de contas.

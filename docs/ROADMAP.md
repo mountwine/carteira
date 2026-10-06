@@ -3,14 +3,15 @@
 Atualizado em 06/10/2026. Estrutura técnica aprovada pelo usuário; prioridades de
 estabilização baseadas na auditoria. Direções de produto confirmadas em
 [DECISIONS](DECISIONS.md), D009–D018. Não autoriza implementação automática.
-Nenhuma correção ou mudança de identidade concluída. IDs K01–K08 referem-se a
+K01 concluído, validado e aprovado pelo usuário em 06/10/2026. Mudança de identidade
+não iniciada. IDs K01–K08 referem-se a
 [PROJECT_STATE](PROJECT_STATE.md), que registra o estado funcional V1.1.
 
 ## 1. Estabilização dos problemas auditados
 
 | Ordem | Escopo | Critério de conclusão | Estado |
 |---|---|---|---|
-| 1 | K01: preservar identidades/metadados ao editar viagem | Renomear/reordenar preserva IDs, preferências, transportes e vínculos; testes com dados anteriores | Proposto |
+| 1 | K01: preservar identidades/metadados ao editar viagem | Renomear/reordenar preserva IDs, preferências, transportes e vínculos; testes com dados anteriores | Concluído; validado e aprovado em 06/10/2026 |
 | 2 | K04: recuperar abertura do IndexedDB | Falha/blocked seguida de nova tentativa bem-sucedida, sem limpar dados; teste isolado | Proposto |
 | 3 | K02: completar consistência das reservas | Confirmar escopo dos campos já modelados, preservar períodos e transmitir local/coordenadas; testar hospedagem em múltiplos dias e roteiro | Proposto |
 | 4 | K03: conciliar duração da viagem/roteiro | Mesmo período aceito e navegável; escolher explicitamente limite versus ampliação, preservando viagens existentes | Proposto; solução a decidir |
@@ -81,6 +82,16 @@ com preferências presumidas.
 
 - 06/10/2026: estrutura técnica de continuidade aprovada pelo usuário.
 
-Camada de decisões de produto preparada em 06/10/2026, aguardando revisão; sem
-novo commit. Ao concluir/priorizar tarefas, atualizar esta lista, o estado e os
-critérios pendentes; decisão confirmada não significa funcionalidade implementada.
+- 06/10/2026: documentação de continuidade/AI Router e decisões de produto
+  aprovadas e versionadas em `141f141`.
+- 06/10/2026: K01 implementado e validado: 19 regressões novas, 65 testes aprovados,
+  build e checagem do endpoint aprovados; editor verificado em 375/402/440 px.
+  Correção aprovada pelo usuário para versionamento; nenhuma outra tarefa iniciada.
+
+Próxima prioridade: **K04**, recuperação da abertura do IndexedDB após falha,
+sem limpar dados. Recomendação conforme AGENTS: **Sol, raciocínio alto** por envolver
+persistência assíncrona, abertura tardia e concorrência; o recorte é localizado,
+sem necessidade atual de Astra. Executar somente após autorização específica.
+
+Ao concluir/priorizar tarefas, atualizar esta lista, o estado e os critérios
+pendentes; decisão confirmada não significa funcionalidade implementada.

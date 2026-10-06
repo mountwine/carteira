@@ -2,7 +2,9 @@
 
 Atualizado em 06/10/2026. Referência funcional: baseline
 `7f1cc01c3bcb0fe61f5f6ceadcbf65085d6322c4`, branch `main`.
-Esta atualização cria apenas documentação de continuidade; não corrige bugs.
+Continuidade aprovada no commit `141f141`; implementação de K01 concluída, validada
+e aprovada pelo usuário em 06/10/2026 para versionamento. Arquitetura e dados
+existentes preservados, sem migração ou limpeza de armazenamento.
 
 ## Fonte e limites
 
@@ -42,7 +44,7 @@ BroadcastChannel. Não há sincronização remota ativa.
 | Área | Estado | Escopo e limitações |
 |---|---|---|
 | Conta local | Implementada/aparentemente funcional | Cadastro, login, edição e recuperação por chave local; sem email |
-| Minhas viagens | Parcial | Criação, edição, ordenação por fase e arquivamento; K01/K03 |
+| Minhas viagens | Parcial | Criação, edição, ordenação por fase e arquivamento; identidades/metadados preservados na edição (K01); K03 aberto |
 | Início | Parcial | Antes/durante/depois, preparação, próxima atividade, clima e retrospectiva; K05 |
 | Roteiro | Implementado/aparentemente funcional | Timeline, horários, conflitos, duplicação, mover dia e edição; K03/K02 |
 | Reservas | Parcial | Tipos, anexos, local e atividade vinculada; faltam controles de campos relevantes; K02 |
@@ -118,11 +120,41 @@ Não houve nova certificação física, visual ou consulta autenticada. A QA de
 O tsconfig do build inclui src e vite.config.ts, mas não api/places.ts.
 Não há script de lint.
 
+## K01 — correção concluída, validada e aprovada em 06/10/2026
+
+TripEditor mantém linhas de viajantes/destinos por identificador, sem reassociar
+pelo nome. Renomear/reordenar preserva preferências, estado de convite, transportes,
+fusos e subperíodos dentro das datas da viagem. IDs novos são gerados somente
+para novas linhas. Metadados gerais existentes também são preservados.
+
+Viajantes agora têm campos individuais com adicionar, subir/descer e remover.
+A conta atual permanece na viagem. Remoção com referências ativas em atividades,
+gastos, bagagem, itens, checklist ou autoria é bloqueada antes de persistir,
+incluindo registros na fila durável de alterações. Registros arquivados são
+preservados; referências de outra viagem não bloqueiam a operação.
+
+- 19 regressões novas; suíte completa: **65/65 testes em oito arquivos**.
+- `pnpm build`: aprovado, incluindo TypeScript, manifest, SW e precache.
+- TypeScript estrito de `api/places.ts`: aprovado separadamente.
+- Chrome desktop, perfil temporário e dados sintéticos, em 375/402/440 px:
+  salvar sem edição, homônimos, renomear/reordenar, metadados/IDs, isolamento,
+  reabertura, salvar offline, remoção com vínculo somente na fila e conflito de
+  versão aprovados; sem overflow horizontal ou erros JavaScript.
+- `git diff --check`: aprovado; correção autorizada para commit pelo usuário.
+- Detalhes e passos de repetição em [QA](QA.md).
+
+Limites: não repara IDs/metadados já perdidos por salvamentos anteriores; não houve
+certificação em dispositivo físico nem consulta autenticada ao Google. A edição
+local offline foi testada após carregar a página; não é nova certificação de
+recarregamento/instalação da PWA offline. Viagens e entidades continuam em stores
+separados; a verificação de referências reflete a leitura feita ao salvar, sem
+transação única entre localStorage e IndexedDB para alterações entre janelas.
+K02–K08 continuam pendentes, sem correções nesta etapa.
+
 ## Problemas conhecidos (abertos)
 
 | ID | Problema e evidência | Impacto |
 |---|---|---|
-| K01 | TripEditor associa membros/cidades por nome, redefine preferences/transport e pode gerar IDs ao renomear; análise de código | Perda de metadados e referências anteriores a viajantes |
 | K02 | LocalReservationEditor não oferece término, horário final, código/status; novos términos iguais ao início. reservationChanges não copia coordenadas/local; este último reproduzido | Hospedagem atual e integração ao roteiro incompletas |
 | K03 | Editor ativo aceita período acima de 366 dias; daysOf corta em 366. Sondagem: 730 dias calculados, 366 navegáveis | Parte do roteiro fica inacessível |
 | K04 | database guarda Promise rejeitada após falha de abertura, sem nova tentativa na mesma página; reproduzido | Recuperação depende de recarregamento |
@@ -140,4 +172,5 @@ de fotos até 30 MB. Não foram encontrados TODO/FIXME/HACK/XXX na auditoria.
 
 Próximas prioridades e critérios em [ROADMAP](ROADMAP.md). Decisões confirmadas em
 [DECISIONS](DECISIONS.md). Questões excepcionais em [ASTRA_QUEUE](ASTRA_QUEUE.md),
-inicialmente sem tarefas. Nenhum problema acima foi corrigido nesta etapa.
+sem tarefas. K01 concluído, validado e aprovado pelo usuário; próxima prioridade
+é K04, ainda não iniciada.
