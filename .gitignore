@@ -1,0 +1,77 @@
+# Dependencies and generated output
+node_modules/
+.pnpm-store/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Tool caches and local deployment metadata
+.vite/
+.vite-temp/
+.cache/
+.vercel/
+.netlify/
+.turbo/
+supabase/.temp/
+supabase/.branches/
+
+# Environment files: only the reviewed, secret-free example is tracked
+.env
+.env.*
+*.env
+*.env.*
+!/.env.example
+.envrc
+.npmrc
+.pnpmrc
+
+# Credentials and private key material
+.aws/
+.ssh/
+.gnupg/
+secrets/
+credentials/
+credentials.json
+credentials.*.json
+service-account*.json
+service_account*.json
+*-firebase-adminsdk-*.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Temporary files, logs, editor and operating-system metadata
+tmp/
+temp/
+*.tmp
+*.temp
+*.log
+*.swp
+*.swo
+*~
+.DS_Store
+._*
+Thumbs.db
+.idea/
+.vscode/
+
+# Local database dumps, backups and browser/test output
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
+*.bak
+*.travelos
+backups/
+playwright-report/
+test-results/
+blob-report/
+
+# Ad-hoc preview captures; keep documented screenshots in docs/screenshots/
+/preview*.png

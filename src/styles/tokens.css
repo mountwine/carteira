@@ -1,0 +1,56 @@
+@font-face {
+  font-family: Manrope;
+  src: url("/manrope.ttf") format("truetype");
+  font-weight: 400 800;
+  font-display: swap;
+}
+:root {
+  --color-bg: #061321;
+  --color-surface: #0d2033;
+  --color-surface-raised: #132b43;
+  --color-text: #f5f8ff;
+  --color-muted: #a9bdd3;
+  --color-border: #294259;
+  --color-primary: #168bff;
+  --color-primary-strong: #0070ed;
+  --color-primary-text: #fff;
+  --color-gold: #ffc655;
+  --color-success: #23d5ad;
+  --font-family: Manrope, system-ui, sans-serif;
+  --radius-card: 20px;
+  --radius-control: 14px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --shadow-card: 0 8px 28px #00000018;
+  --motion-fast: 160ms;
+  --content-width: 1040px;
+  color-scheme: dark;
+}
+/* Tema selecionado no Perfil. Automático acompanha a preferência do aparelho. */
+:root[data-theme="light"] {
+  --color-bg: #f3f7fc;
+  --color-surface: #fff;
+  --color-surface-raised: #eaf1fa;
+  --color-text: #102338;
+  --color-muted: #486078;
+  --color-border: #ccdaea;
+  --shadow-card: 0 8px 28px #163c6210;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] {
+    --color-bg: #f3f7fc;
+    --color-surface: #fff;
+    --color-surface-raised: #eaf1fa;
+    --color-text: #102338;
+    --color-muted: #486078;
+    --color-border: #ccdaea;
+    color-scheme: light;
+  }
+}
