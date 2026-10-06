@@ -1,86 +1,71 @@
 # Guia para agentes — Travel OS
 
-## Contexto
+## Continuidade
 
-Travel OS V1.1 é um aplicativo pessoal de viagens com interface em português
-brasileiro, pensado para uso mobile e offline. Usa React 19, TypeScript estrito,
-Vite e PWA. Leia `README.md` antes de alterar arquitetura ou integrações;
-`docs/QA.md` registra a validação anterior e seus limites, não o resultado atual.
+Antes de trabalho relevante, leia [estado](docs/PROJECT_STATE.md),
+[decisões](docs/DECISIONS.md) e [roadmap](docs/ROADMAP.md), depois os arquivos
+afetados. Código e testes são a fonte da verdade sobre implementação; documentos
+podem estar desatualizados. Instruções atuais do usuário prevalecem. O roadmap
+orienta prioridades, mas não autoriza executar tarefas fora do pedido.
 
-A aplicação ativa usa autenticação e armazenamento locais. Não há backend de
-contas, sincronização remota, colaboração real ou integração ativa com agentes.
-Arquivos Supabase e módulos de demonstração legados não representam o fluxo ativo.
+Após mudanças relevantes, atualize o estado e seus resultados de validação,
+registre decisões permanentes confirmadas e ajuste o roadmap. Separe fatos,
+hipóteses e propostas; não transforme suposições em preferências de produto.
+Use README para configuração/uso e docs/QA.md como evidência histórica datada.
+Atualize README quando comportamento, configuração ou limitações mudarem.
 
-## Comandos
+## Modelo e raciocínio
 
-Requisitos declarados: Node >=22.12.0 e pnpm 11.19.0. Use pnpm e preserve
-`pnpm-lock.yaml`.
+Antes de iniciar cada tarefa, informe brevemente complexidade, menor modelo e
+esforço suficientes, com uma justificativa. Use as opções disponíveis no Codex:
 
-- Instalar dependências: `pnpm install --frozen-lockfile`.
-- Desenvolvimento: `pnpm dev`.
-- Testes: `pnpm test` (Vitest, incluindo testes em `tests/` e junto ao código).
-- Teste específico: `pnpm exec vitest run tests/v11.test.ts`.
-- Verificar TypeScript e gerar produção: `pnpm build`.
-- Preview de produção: `pnpm preview --port 5173`.
-- Formatação disponível: `pnpm format`; esse comando reescreve todo `src` e
-  `vite.config.ts`. Para alterações pequenas, formate apenas os arquivos editados
-  com `pnpm exec prettier --write <arquivos>`.
+| Tarefa | Recomendação inicial |
+|---|---|
+| Mecânica/repetitiva, escopo claro | Luna, baixo; médio se exigir cruzar arquivos |
+| Implementação e raciocínio intermediário | Sol, médio |
+| Implementação complexa, persistência ou concorrência | Sol, alto; extra alto se justificado |
+| Arquitetura de alto impacto, problema excepcional ou revisão importante | Avaliar Astra, médio/alto conforme incerteza |
 
-Não existe script de lint. O `tsconfig.json` inclui `src` e `vite.config.ts`;
-o build não verifica diretamente `api/places.ts`.
+Prefira a opção econômica que cumpra os critérios de qualidade. Ajuste o esforço
+antes de escalar o modelo, conforme risco e evidência. Não recomende Astra por
+uma tentativa falha: primeiro confira contexto, arquivos, requisitos, permissões,
+ambiente e reprodução. Essas regras recomendam a seleção ao usuário; não alegue
+trocar automaticamente o modelo da conversa. Não use modelos/agentes externos
+para contornar uma restrição do usuário.
 
-## Estrutura
+Agrupe apenas questões difíceis de alto impacto em [ASTRA_QUEUE](docs/ASTRA_QUEUE.md).
+Antes de revisão pelo Astra, prepare objetivo, contexto mínimo, diff/arquivos
+críticos, testes, tentativas, incertezas e perguntas específicas. Não envie o
+repositório inteiro quando um recorte bastar; elimine segredos e dados pessoais.
+A fila não dispara chamadas nem troca de modelo; siga a autorização do usuário.
 
-- `src/app/`: composição da aplicação, sessão, navegação e workspace.
-- `src/features/`: telas e fluxos de viagens, roteiro, álbum e ferramentas.
-- `src/components/`: controles e formulários compartilhados; `LocalEditors.tsx`
-  contém editores e validações locais.
-- `src/domain/`: modelos, regras, mutações, conversões e navegação.
-- `src/data/`: IndexedDB, repositório, engine, contexto, mídia e arquivos.
-- `src/adapters/`: autenticação/viagens locais, preferências e serviços externos.
-  `index.ts` seleciona os serviços ativos.
-- `src/styles/`: tokens e estilos. Preserve o tema escuro, fonte Manrope local e
-  os tokens centralizados de `tokens.css`.
-- `api/places.ts`: função Vercel para Google Places; não armazena viagens.
-- `public/`: assets locais e ícones. Consulte `ASSETS.md` ao trabalhar com mídia.
-- `supabase/`: migrations e verificações históricas; não ativar implicitamente.
-- `tests/`: testes de domínio, banco, offline, mídia e endpoint; alguns usam
-  `fake-indexeddb` e PGlite.
-- `dist/` e `*.tsbuildinfo`: saídas geradas; altere as fontes.
+## Implementação e dados
 
-## Regras de implementação
+React/TypeScript estrito, componentes funcionais e padrões existentes. Mantenha
+regras no domínio, persistência em data/adapters e reutilize controles e tokens.
+Leia PROJECT_STATE para arquitetura e README antes de mudar integrações.
 
-Siga os padrões existentes: componentes funcionais, hooks, imports ES modules e
-tipos explícitos nas fronteiras. Mantenha regras de negócio no domínio e acesso
-ao armazenamento/serviços nas camadas próprias. Reutilize formulários e tokens.
+Preserve dados, IDs, isolamento por proprietário/viagem e migrações idempotentes.
+Não limpe localStorage/IndexedDB, apague registros ou execute operações destrutivas
+sem autorização explícita. Preserve arquivamento, compra/gasto atômicos e revisão
+de conflitos. Não invente seeds, horários, fusos ou cotações; identifique fallback
+manual/cache e indisponibilidade. Não exponha segredos no frontend ou com VITE_.
 
-Preserve identificadores, dados anteriores e isolamento por proprietário/viagem.
-Migrações devem ser compatíveis e idempotentes. Não limpe localStorage ou IndexedDB
-para resolver falhas. Exclusões existentes usam arquivamento. Compra e gasto
-vinculado devem manter a transação única e não gerar duplicatas. Preserve controle
-de versão e revisão de conflitos entre janelas.
+## Verificação e Git
 
-Não introduza seeds automáticos, cotações fictícias, horários ou fusos inventados.
-Indique indisponibilidade quando uma integração não responder e mantenha os
-fallbacks manuais/cache identificados. Não apresente convites ou recursos futuros
-como funcionais sem implementá-los.
+Node >=22.12.0; pnpm 11.19.0 e lockfile preservado. Comandos: `pnpm dev`,
+`pnpm test`, `pnpm build`, `pnpm preview --port 5173`. Instalação, se necessária:
+`pnpm install --frozen-lockfile`. Formate só arquivos editados; `pnpm format`
+reescreve todo src e vite.config.ts. Não existe script de lint.
 
-`GOOGLE_PLACES_API_KEY` e `ALLOWED_ORIGIN` são variáveis de servidor.
-Nunca exponha segredos com prefixo `VITE_` ou no frontend. `VITE_PLACES_ENDPOINT`
-é configuração pública opcional. Vite dev/preview não executa funções Vercel.
+Sempre execute verificações/testes relevantes após alterações: em documentação,
+valide links, coerência e diff; em código, testes do comportamento e build.
+Verifique api/places.ts separadamente, pois está fora do tsconfig principal.
+Para persistência, cubra migração real, isolamento, reabertura e concorrência;
+para UI, fluxos afetados e 375/402/440 px. Use dados sintéticos, preserve a origem
+do navegador e não certifique dispositivo físico com viewport desktop.
 
-## Validação
-
-Após alterações de comportamento, execute testes relevantes e `pnpm build`.
-Para mudanças em persistência, valide migração, isolamento, reabertura offline e
-concorrência. Para UI, confira os fluxos afetados e larguras mobile de 375, 402 e
-440 px, incluindo navegação de retorno e ausência de overflow horizontal.
-
-Ao usar o navegador, preserve protocolo, host e porta: a origem define o espaço
-de armazenamento. Use uma viagem de teste para QA e preserve registros pessoais.
-Pare o dev antes de abrir preview na mesma porta. O preview inclui service worker;
-confira atualização e cache quando houver comportamento aparentemente antigo.
-Não afirme certificação em iPhone/Android físico com base em viewport desktop.
-
-Atualize `README.md` quando mudar comportamento, configuração ou limitações.
-Relate os comandos realmente executados e quaisquer verificações pendentes.
+Confira Git antes e depois do trabalho; preserve alterações alheias, mantenha
+diffs pequenos e relate arquivos, testes, limitações e pendências. Não faça reset,
+clean ou reescrita de histórico sem autorização. Crie commits quando autorizados;
+não declare uma tarefa concluída antes da validação e da atualização documental.
