@@ -60,19 +60,54 @@ As fronteiras de dados e stores versionados permitem uma futura exportação/imp
 
 A cópia original do código da V1 foi preservada fora do projeto. Cópia de código não é backup dos dados do navegador.
 
-## Integrações e variáveis na Vercel
+## Configuração da pesquisa de lugares
 
-O funcionamento local não exige variáveis de ambiente.
+A pesquisa online usa Geoapify Address Autocomplete pela função server-side
+`api/places.ts`. A interface depende somente do contrato interno `/api/places`;
+o adaptador Geoapify fica em `api/providers/geoapify.ts`, separado dos formulários.
+O host deve executar funções Node para `/api/*`; publicar apenas `dist/` não
+fornece esse endpoint. O mesmo handler é exercitado pelo middleware Vite dev/
+preview. Sem configuração ou conexão, os campos continuam aceitando locais
+manualmente. Nenhuma variável secreta usa o prefixo `VITE_`.
 
-| Variável | Local | Uso |
-|---|---|---|
-| `GOOGLE_PLACES_API_KEY` | somente servidor Vercel | Chave real de Google Places API (New). Nunca usar prefixo `VITE_`. |
-| `ALLOWED_ORIGIN` | somente servidor Vercel | Origem exata permitida, ex.: `https://seu-projeto.vercel.app`. |
-| `VITE_PLACES_ENDPOINT` | frontend, opcional | Padrão `/api/places`; preferir endpoint na mesma origem. Não contém segredo. |
+| Variável | Obrigatória? | Finalidade | Onde configurar | Exemplo seguro |
+| --- | --- | --- | --- | --- |
+| `GEOAPIFY_API_KEY` | Sim para busca online | Chave do Geoapify Address Autocomplete, usada somente pelo servidor | Ambiente server-side do host e, para teste local, `.env.local` | Valor secreto criado em Geoapify MyProjects; não use um valor de exemplo em produção |
+| `ALLOWED_ORIGIN` | Sim para busca online | Autoriza exatamente a origem que carrega o app e configura CORS | Ambiente server-side do host e, para teste local, `.env.local` | `https://foravento.example` |
+| `VITE_PLACES_ENDPOINT` | Não | Sobrescreve o endpoint interno padrão. Deixe vazio para usar `/api/places` na mesma origem | Ambiente de build; é pública e não pode conter segredo | vazio; ou endpoint próprio com CORS configurado |
 
-Na Vercel, selecione a pasta deste projeto, framework Vite, build `pnpm build`, saída `dist`, Node compatível. Adicione as variáveis em Settings → Environment Variables nos ambientes desejados e gere um novo deployment. Habilite Places API (New) e faturamento no projeto Google; restrinja a chave a essa API. O endpoint fornece autocomplete e detalhes; aplica validação, timeout, limite básico por IP/instância e origem configurada. O limite em memória não é uma quota global/distribuída: configure quotas no Google Cloud para controlar custos.
+`ALLOWED_ORIGIN` deve ser a origem final exibida na barra do navegador, contendo
+esquema (`https://`) e domínio, sem caminho, query, fragmento ou barra final. Por
+exemplo, se o endereço do app for `https://foravento.example/viagens`, configure
+`https://foravento.example`. Se o host der um domínio temporário e você testar
+por ele, configure essa origem nesse ambiente; ao conhecer/usar o domínio final,
+substitua pelo domínio final e gere um novo build/deploy conforme o host exigir.
+Para desenvolvimento local, use a origem real do Vite, por exemplo
+`http://localhost:5173`. Uma origem diferente, inclusive `www` ou domínio de
+preview, recebe 403. A API exige chave e origem válida. Não configure a chave
+em variável `VITE_*`.
 
-O servidor Vite/preview sozinho não executa funções Vercel. Sem endpoint/chave, o formulário informa que a pesquisa não está configurada e aceita local manual. Nesse caso, coordenadas/país normalizado podem não existir; não se inventam sugestões. Com API, seleção salva nome, endereço, cidade, região, país, coordenadas e ID disponíveis. O código nunca pede localização GPS do aparelho. Antes de ativar um provider em produção, seu uso offline/armazenamento precisa respeitar a licença contratada; o adapter permite substituí-lo sem alterar os registros de viagem. Consulte as [políticas do Places](https://developers.google.com/maps/documentation/places/web-service/policies).
+### Configuração do Geoapify
+
+1. Crie ou selecione um projeto em [Geoapify MyProjects](https://myprojects.geoapify.com/).
+2. Abra **API Keys**, crie uma chave e habilite **Address Autocomplete API**. A implementação chama `GET https://api.geoapify.com/v1/geocode/autocomplete` em formato GeoJSON com limite de oito resultados e idioma português, conforme a [documentação oficial](https://apidocs.geoapify.com/docs/geocoding/address-autocomplete/).
+3. Proteja a chave com as restrições compatíveis com o host e consulte os limites/consumo do plano escolhido. A chave fica somente no servidor.
+4. No ambiente local `.env.local`, defina `GEOAPIFY_API_KEY` e `ALLOWED_ORIGIN`. No ambiente de hospedagem, configure ambas como variáveis server-side para Preview e Production conforme necessário.
+5. Teste o endpoint e a pesquisa no aplicativo conforme “Verificação depois do deploy”.
+
+`.env.local` é ignorado pelo Git. Não mostre, copie para outros arquivos, versione ou inclua nele/deploy algum log com o valor da chave; não registre a chave em código, bundle, URL do frontend ou documentação. A autenticação do Geoapify exige a key como parâmetro na chamada provider-to-provider, feita exclusivamente pelo servidor.
+
+O handler valida a origem, consultas e respostas, usa timeout, aplica limite básico de 60 chamadas por minuto por IP/instância e não armazena dados de viagem. Esse limite em memória não é global; monitore a cota no painel Geoapify. A busca é livre e pode retornar lugares e endereços indexados, incluindo restaurantes, atrações, hotéis, aeroportos e pontos de referência; resultados e detalhes dependem da cobertura do catálogo. Cada solicitação de autocomplete é uma chamada cobrada conforme o plano.
+
+**Atribuição:** a interface mostra `Powered by Geoapify` e `© OpenStreetMap contributors` junto às sugestões e aos locais selecionados. Geoapify exige atribuição OpenStreetMap; o crédito Geoapify também é obrigatório no plano gratuito. Os links aparecem próximos do local fornecido pelo serviço. Os termos também requerem manter a atribuição da fonte junto aos dados armazenados ou torná-la visível ao reutilizá-los ([termos Geoapify](https://www.geoapify.com/terms-and-conditions/)).
+
+### Build e hospedagem manual
+
+Use Node `>=22.12.0` e pnpm `11.19.0`. Extraia o ZIP e use a raiz do projeto. Configure build `pnpm build`, diretório estático `dist` **e** função Node `/api/places` (`api/places.ts`). O `vercel.json` mantém as rotas SPA fora de `/api`. Em Settings → Environment Variables, crie `GEOAPIFY_API_KEY` como variável secreta e `ALLOWED_ORIGIN` com a origem final exata nos ambientes de Preview/Production desejados; depois gere um deployment para aplicar a configuração. Se ainda não souber a URL final, publique inicialmente sem busca habilitada para obter o domínio, configure `ALLOWED_ORIGIN` com esse domínio e publique novamente. A ausência da chave ou origem mantém `/api/places` desabilitado com resposta 503. Um host apenas estático não executará a função.
+
+**Verificação depois do deploy:** substitua `https://foravento.example` pela URL efetiva e execute `curl -i -H 'Origin: https://foravento.example' 'https://foravento.example/api/places?q=Restaurante'`. Com configuração válida, a resposta deve ser HTTP 200 e JSON `{ "places": [...] }` (uma lista vazia também é válida). HTTP 503 indica configuração ausente; 403 indica origem diferente; 429 indica limite temporário; 502 indica erro do provider ou resposta inválida. Em seguida, no app conectado, pesquise locais, selecione um resultado, salve uma atividade e uma reserva e reabra cada item para conferir nome, endereço, coordenadas e código postal quando fornecidos. Teste também digitar um local manualmente com a busca online indisponível. Nunca coloque a chave em comandos, URLs, capturas de tela ou registros.
+
+Sem chave configurada, o formulário informa que a pesquisa não está configurada e aceita local manual. Com a API, seleção pode salvar nome, endereço, cidade, região/estado, país, código postal, categoria, coordenadas, ID e atribuição quando disponíveis. O código não solicita a localização GPS do aparelho. Dados Google existentes não são migrados nem apagados nesta troca de provider.
 
 [Câmbio Frankfurter](https://frankfurter.dev/) e [clima Open-Meteo](https://open-meteo.com/en/docs) usam APIs reais sem chave nesta implementação. Câmbio guarda taxa, data de referência e horário de consulta; offline reutiliza cache identificado. Sem cache, conversão fica indisponível e gastos/compras aceitam taxa informada. Nenhum valor hardcoded substitui cotação. Clima consulta coordenadas salvas durante a viagem e guarda previsão de sete dias; sem coordenadas/conexão/cache, mostra indisponibilidade. Cotação não inclui IOF/spread.
 
@@ -80,6 +115,6 @@ Referências de tamanhos utilizam a [tabela Nike](https://static.nike.com.br/web
 
 ## Validação e limites
 
-Consulte `docs/QA.md`. Build de produção e testes passam; inspeção mobile cobriu 375, 402 e 440 px. Autocomplete Google com chave real ainda depende de configuração; fallback e contrato do endpoint foram testados. Compartilhamento nativo/instalação no iPhone físico não foram certificados nesta sessão. JPEG/PNG/WebP funcionam; HEIC depende da decodificação nativa do navegador. EXIF de JPEG fornece data/hora quando válido; localização GPS EXIF não é extraída. Imagens são comprimidas a até 2200 px, não constituindo arquivo de originais. Anexos: até 10 MB; fotos de entrada: até 30 MB. Armazenamento depende da quota do dispositivo/navegador.
+Consulte `docs/QA.md`. Build de produção, TypeScript e testes passam; inspeção mobile cobriu 375, 402 e 440 px. A integração Geoapify foi validada com chave local e dados sintéticos, além de testes mockados do contrato e fallback. Compartilhamento nativo/instalação no iPhone físico não foram certificados nesta sessão. JPEG/PNG/WebP funcionam; HEIC depende da decodificação nativa do navegador. EXIF de JPEG fornece data/hora quando válido; localização GPS EXIF não é extraída. Imagens são comprimidas a até 2200 px, não constituindo arquivo de originais. Anexos: até 10 MB; fotos de entrada: até 30 MB. Armazenamento depende da quota do dispositivo/navegador.
 
 Os módulos retirados foram arquivados fora do projeto, em work/v1.1/legacy. Tipos compatíveis e migrações SQL permanecem como referência histórica da V1, fora das rotas ativas. Não há mocks silenciosos nas novas consultas externas, nem convites reais: o formulário de convite apenas comunica a indisponibilidade de colaboração.

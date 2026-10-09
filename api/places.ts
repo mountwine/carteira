@@ -1,5 +1,8 @@
-// Vercel Node function; secret stays on the server. No personal travel data is stored here.
+// Provider-neutral server endpoint. Provider credentials and trip data stay server-side.
+import { searchGeoapify } from "./providers/geoapify";
+
 declare const process: { env: Record<string, string | undefined> };
+
 interface Incoming {
   method?: string;
   query: Record<string, string | string[] | undefined>;
@@ -10,121 +13,125 @@ interface Outgoing {
   json(v: unknown): void;
   setHeader(k: string, v: string): void;
 }
+export interface PlacesEnvironment {
+  GEOAPIFY_API_KEY?: string;
+  ALLOWED_ORIGIN?: string;
+}
+
 const windows = new Map<string, { at: number; count: number }>();
+
+function header(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+function normalizeOrigin(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  try {
+    const parsed = new URL(value);
+    if (
+      !["https:", "http:"].includes(parsed.protocol) ||
+      parsed.origin !== value ||
+      parsed.username ||
+      parsed.password
+    ) return undefined;
+    return parsed.origin;
+  } catch {
+    return undefined;
+  }
+}
+function requestOrigin(req: Incoming): string | undefined {
+  const origin = header(req.headers.origin);
+  if (origin) return normalizeOrigin(origin);
+  const referer = header(req.headers.referer);
+  if (!referer) return undefined;
+  try {
+    return new URL(referer).origin;
+  } catch {
+    return undefined;
+  }
+}
+function queryValue(value: string | string[] | undefined): string | undefined {
+  return typeof value === "string" ? value.trim() : undefined;
+}
+function errorStatus(error: unknown): number | undefined {
+  return error !== null && typeof error === "object" &&
+    "status" in error && typeof error.status === "number"
+    ? error.status
+    : undefined;
+}
+function retryAfter(error: unknown): string | undefined {
+  return error !== null && typeof error === "object" &&
+    "retryAfter" in error && typeof error.retryAfter === "string"
+    ? error.retryAfter
+    : undefined;
+}
+
 export default async function handler(req: Incoming, res: Outgoing) {
+  return handlePlaces(req, res, process.env);
+}
+
+export async function handlePlaces(
+  req: Incoming,
+  res: Outgoing,
+  env: PlacesEnvironment,
+) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "GET") {
     res.status(405).json({ error: "Método não permitido" });
     return;
   }
-  const key = process.env.GOOGLE_PLACES_API_KEY;
-  if (!key) {
+
+  const apiKey = env.GEOAPIFY_API_KEY?.trim();
+  const allowedOrigin = normalizeOrigin(env.ALLOWED_ORIGIN?.trim());
+  if (!apiKey || !allowedOrigin) {
     res.status(503).json({ error: "Pesquisa não configurada" });
     return;
   }
-  const allowed = process.env.ALLOWED_ORIGIN;
-  if (allowed && req.headers.origin && req.headers.origin !== allowed) {
+  if (requestOrigin(req) !== allowedOrigin) {
     res.status(403).json({ error: "Origem não permitida" });
     return;
   }
-  const ip = String(req.headers["x-forwarded-for"] ?? "local").split(",")[0];
-  let w = windows.get(ip);
-  if (!w || Date.now() - w.at > 60000) {
-    w = { at: Date.now(), count: 0 };
-    windows.set(ip, w);
+  res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+  res.setHeader("Vary", "Origin");
+
+  const ip = String(
+    header(req.headers["x-forwarded-for"]) ??
+      header(req.headers["x-real-ip"]) ??
+      "unknown",
+  ).split(",")[0].trim();
+  let window = windows.get(ip);
+  if (!window || Date.now() - window.at > 60000) {
+    window = { at: Date.now(), count: 0 };
+    windows.set(ip, window);
   }
-  if (++w.count > 60) {
+  if (++window.count > 60) {
+    res.setHeader("Retry-After", "60");
     res.status(429).json({ error: "Tente novamente em instantes" });
     return;
   }
-  if (windows.size > 10000)
-    for (const [k, v] of windows)
-      if (Date.now() - v.at > 60000) windows.delete(k);
-  const q = String(req.query.q ?? ""),
-    id = String(req.query.id ?? ""),
-    session = String(req.query.session ?? "");
-  if (session && !/^[a-f\d-]{36}$/i.test(session)) {
-    res.status(400).json({ error: "Sessão inválida" });
+  if (windows.size > 10000) {
+    for (const [address, record] of windows)
+      if (Date.now() - record.at > 60000) windows.delete(address);
+  }
+
+  const query = queryValue(req.query.q);
+  if (!query || query.length < 3 || query.length > 200) {
+    res.status(400).json({ error: "Pesquisa inválida" });
     return;
   }
+
   try {
-    if (id) {
-      if (!/^[\w-]{5,200}$/.test(id)) throw new Error("ID inválido");
-      const url = new URL(
-        `https://places.googleapis.com/v1/places/${encodeURIComponent(id)}`,
-      );
-      if (session) url.searchParams.set("sessionToken", session);
-      const response = await fetch(url, {
-        headers: {
-          "X-Goog-Api-Key": key,
-          "X-Goog-FieldMask":
-            "id,displayName,formattedAddress,addressComponents,location",
-        },
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!response.ok) throw new Error("Provider indisponível");
-      const d = await response.json();
-      const component = (type: string) =>
-        d.addressComponents?.find((c: { types: string[] }) =>
-          c.types.includes(type),
-        )?.longText ?? "";
-      res.status(200).json({
-        name: d.displayName?.text ?? d.formattedAddress,
-        address: d.formattedAddress,
-        city: component("locality"),
-        region: component("administrative_area_level_1"),
-        country: component("country"),
-        lat: d.location?.latitude,
-        lng: d.location?.longitude,
-        providerId: d.id,
-        provider: "google",
-      });
-      return;
-    }
-    if (q.trim().length < 3 || q.length > 200) {
-      res.status(400).json({ error: "Pesquisa inválida" });
-      return;
-    }
-    const response = await fetch(
-      "https://places.googleapis.com/v1/places:autocomplete",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key },
-        body: JSON.stringify({
-          input: q,
-          languageCode: "pt-BR",
-          ...(session ? { sessionToken: session } : {}),
-        }),
-        signal: AbortSignal.timeout(10000),
-      },
+    const places = await searchGeoapify(
+      query,
+      apiKey,
+      AbortSignal.timeout(10000),
     );
-    if (!response.ok) throw new Error("Provider indisponível");
-    const d = await response.json();
-    res.status(200).json({
-      places: (d.suggestions ?? [])
-        .filter((s: { placePrediction?: unknown }) => s.placePrediction)
-        .map(
-          (s: {
-            placePrediction: {
-              placeId: string;
-              text: { text: string };
-              structuredFormat?: {
-                mainText?: { text: string };
-                secondaryText?: { text: string };
-              };
-            };
-          }) => ({
-            name:
-              s.placePrediction.structuredFormat?.mainText?.text ??
-              s.placePrediction.text.text,
-            address:
-              s.placePrediction.structuredFormat?.secondaryText?.text ?? "",
-            providerId: s.placePrediction.placeId,
-            provider: "google",
-          }),
-        ),
-    });
-  } catch {
+    res.status(200).json({ places });
+  } catch (error) {
+    if (errorStatus(error) === 429) {
+      res.setHeader("Retry-After", retryAfter(error) ?? "60");
+      res.status(429).json({ error: "Limite de pesquisa atingido" });
+      return;
+    }
     res.status(502).json({ error: "Pesquisa indisponível" });
   }
 }

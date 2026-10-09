@@ -673,7 +673,7 @@ dialog.photo-viewer::backdrop {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-.GMP-attribution {
+.places-attribution {
   font-family: Manrope, sans-serif;
   font-style: normal;
   font-weight: 400;
@@ -681,4 +681,7 @@ dialog.photo-viewer::backdrop {
   letter-spacing: normal;
   white-space: nowrap;
   color: #fff;
+}
+.places-attribution a {
+  color: inherit;
 }

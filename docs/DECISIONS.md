@@ -1,6 +1,6 @@
 # Registro de decisões — Travel OS / Foravento
 
-Atualizado em 06/10/2026. Registra somente escolhas comprovadas no projeto ou
+Atualizado em 07/10/2026. Registra somente escolhas comprovadas no projeto ou
 confirmadas pelo usuário. Arquitetura vigente não implica preferência por mantê-la
 para sempre; uma mudança exige decisão explícita e referência que a substitua.
 Bugs, tarefas e propostas pertencem a PROJECT_STATE/ROADMAP, não a este registro.
@@ -32,13 +32,25 @@ Bugs, tarefas e propostas pertencem a PROJECT_STATE/ROADMAP, não a este registr
 - Consequência: defeitos de preservação conhecidos são violações a corrigir, não
   justificativa para limpar armazenamento ou recriar dados.
 
-## D004 — Segredo de Places somente no servidor
+## D004 — Places server-side (decisão histórica substituída)
 
-- Estado: vigente, comprovado no projeto; registrado em 06/10/2026.
-- Decisão: GOOGLE_PLACES_API_KEY no endpoint Vercel; frontend recebe apenas a
+- Estado: substituída em 07/10/2026 por D020; mantida como histórico.
+- Decisão anterior: GOOGLE_PLACES_API_KEY no endpoint Vercel; frontend recebe apenas a
   configuração pública VITE_PLACES_ENDPOINT. Usar fallback manual quando ausente.
 - Evidência: api/places.ts, adapters/external.ts, .env.example e README.
 - Consequência: não colocar chaves em código/frontend ou variáveis VITE_.
+
+## D020 — Geoapify como provedor operacional de Places
+
+- Estado: confirmado pelo usuário nesta tarefa, em 07/10/2026.
+- Decisão: migrar a pesquisa de lugares para Geoapify, manter `/api/places` e o
+  contrato interno do app, usar a chave somente no servidor e manter a edição
+  manual disponível quando a pesquisa não responder.
+- Evidência: pedido explícito de migração e configuração de `GEOAPIFY_API_KEY`
+  no ambiente local para validação real.
+- Consequência: `GOOGLE_PLACES_API_KEY` deixa de ser dependência da pesquisa;
+  Google Maps não relacionado a Places permanece independente. Configuração
+  posterior no host continua sendo responsabilidade do usuário.
 
 ## D005 — Consultas externas com indisponibilidade explícita
 
@@ -119,7 +131,9 @@ trabalho futuro em [ROADMAP](ROADMAP.md).
 - Decisão: a nova identidade visual do Foravento começará a ser aplicada na V1.2.
 - Estado atual: baseline funcional é Travel OS V1.1, sem essa aplicação.
 - Consequência: planejar a transição sem declarar implementação ou fechamento
-  completo da identidade na V1.2. Logo, paleta e demais detalhes não foram definidos.
+  completo da identidade na V1.2. A obrigatoriedade da logo oficial e da
+  identidade aprovada foi confirmada posteriormente em D019; seus artefatos
+  não foram identificados no material examinado.
 
 ### D013 — Viajantes da viagem selecionada
 
@@ -179,10 +193,25 @@ trabalho futuro em [ROADMAP](ROADMAP.md).
 - Consequência: preservar recursos existentes e avaliar/adequar a segunda forma
   de navegação; não declarar a experiência futura integralmente implementada.
 
+### D019 — Integração obrigatória da marca na build de identidade V1.2
+
+- Estado: confirmado pelo usuário em 06/10/2026; implementação futura.
+- Decisão: a próxima build que implementar a identidade visual deve integrar
+  Foravento em substituição a Travel OS na interface, a nova logo oficial e a
+  identidade visual aprovada. Atualizar posteriormente nome exibido, ícones,
+  splash/PWA e demais pontos de branding aplicáveis.
+- Fonte: pedido explícito do usuário para o handoff externo de UX/UI.
+- Estado atual: marca Travel OS ainda presente; arquivos oficiais novos e
+  especificações aprovadas não identificados no material examinado.
+- Consequência: requisito obrigatório para a futura implementação da V1.2;
+  preservar arquitetura e dados, sem reescrita motivada pela marca. Não inventar
+  artefatos substitutos nem implementar a mudança nesta tarefa documental.
+- Referência: [handoff UX/UI](ux/UX_AUDIT_HANDOFF.md).
+
 ## Como acrescentar decisões
 
 Usar ID estável, data, estado (vigente/substituída), decisão, fonte de confirmação
 e consequências. Ao substituir, preservar o registro anterior e vincular o novo.
-Não registrar propostas pendentes como aprovadas. D009–D018 são decisões de produto
+Não registrar propostas pendentes como aprovadas. D009–D019 são decisões de produto
 confirmadas; suas lacunas de implementação continuam abertas. As restrições da
 etapa atual não são proibições permanentes.

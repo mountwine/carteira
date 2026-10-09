@@ -89,9 +89,9 @@ it("galeria mantém blobs e isola viagens/tipos e exclusões", async () => {
   expect(list.map((p) => p.id)).toEqual(["media-one"]);
   expect(list[0].blob).toBeInstanceOf(Blob);
 });
-it("endpoint Places sem segredo retorna estado de configuração sem chamar Google", async () => {
-  const old = process.env.GOOGLE_PLACES_API_KEY;
-  delete process.env.GOOGLE_PLACES_API_KEY;
+it("endpoint Places sem segredo retorna estado de configuração sem chamar provider", async () => {
+  const old = process.env.GEOAPIFY_API_KEY;
+  delete process.env.GEOAPIFY_API_KEY;
   const status = vi.fn(),
     json = vi.fn(),
     res = {
@@ -112,7 +112,7 @@ it("endpoint Places sem segredo retorna estado de configuração sem chamar Goog
     expect(status).toHaveBeenCalledWith(503);
     expect(fetch).not.toHaveBeenCalled();
   } finally {
-    if (old) process.env.GOOGLE_PLACES_API_KEY = old;
+    if (old) process.env.GEOAPIFY_API_KEY = old;
   }
 });
 it("previsão real validada é guardada e reutilizada sem conexão", async () => {

@@ -8,6 +8,7 @@ import {
   type DocumentData,
 } from "../domain/entities";
 import type { PlaceData } from "../domain/models";
+import { activityPlaceId } from "../domain/planning";
 import {
   AttachmentPicker,
   ConfirmDiscard,
@@ -74,6 +75,7 @@ export function validReservation(input: {
   category: string;
   customType?: string;
   date: string;
+  endDate?: string;
   time: string;
   address: string;
 }) {
@@ -82,6 +84,7 @@ export function validReservation(input: {
     input.category &&
     (input.category !== "other" || input.customType?.trim()) &&
     /^\d{4}-\d{2}-\d{2}$/.test(input.date) &&
+    (!input.endDate || input.endDate >= input.date) &&
     /^([01]\d|2[0-3]):[0-5]\d$/.test(input.time) &&
     input.address.trim()
   );
@@ -163,7 +166,7 @@ export function LocalActivityEditor({
                     : ("evening" as const),
               duration: old?.data.duration ?? 60,
               fixed: old?.data.fixed ?? false,
-              placeId: place.providerId ?? old?.data.placeId ?? "",
+              placeId: activityPlaceId(place, old?.data.placeId),
               location: place,
               address: place.address || place.name,
               lat: place.lat ?? null,
@@ -238,7 +241,14 @@ export function LocalReservationEditor({
     ),
     [custom, setCustom] = useState(old?.data.customType ?? ""),
     [date, setDate] = useState(old?.data.date ?? t.trip.startDate),
+    [endDate, setEndDate] = useState(
+      old?.data.endDate &&
+        old.data.endDate >= (old?.data.date ?? t.trip.startDate)
+        ? old.data.endDate
+        : (old?.data.date ?? t.trip.startDate),
+    ),
     [time, setTime] = useState(old?.data.time ?? "09:00"),
+    [endTime, setEndTime] = useState(old?.data.endTime ?? ""),
     [place, setPlace] = useState<PlaceData>(
       old?.data.location ?? {
         name: old?.data.address ?? "",
@@ -248,6 +258,10 @@ export function LocalReservationEditor({
     ),
     [price, setPrice] = useState(String(old?.data.price ?? "")),
     [currency, setCurrency] = useState(old?.data.currency ?? t.trip.currency),
+    [code, setCode] = useState(old?.data.code ?? ""),
+    [status, setStatus] = useState<Reservation["status"]>(
+      old?.data.status ?? "confirmed",
+    ),
     [notes, setNotes] = useState(old?.data.notes ?? ""),
     [file, setFile] = useState<File | null>(null),
     [integrate, setIntegrate] = useState(old?.data.addToItinerary ?? true),
@@ -260,6 +274,7 @@ export function LocalReservationEditor({
       category,
       customType: custom,
       date,
+      endDate,
       time,
       address: place.name,
     }) &&
@@ -300,20 +315,17 @@ export function LocalReservationEditor({
               category: category as Reservation["category"],
               customType: custom,
               date,
-              endDate:
-                old?.data.endDate && old.data.endDate >= date
-                  ? old.data.endDate
-                  : date,
+              endDate: endDate,
               time,
-              endTime: old?.data.endTime ?? "",
+              endTime,
               address: place.address || place.name,
               location: place,
               city: place.city ?? "",
-              code: old?.data.code ?? "",
+              code,
               price: Number(price) || 0,
               currency,
               notes,
-              status: old?.data.status ?? "confirmed",
+              status,
               documentId,
               addToItinerary: integrate,
             };
@@ -364,8 +376,29 @@ export function LocalReservationEditor({
             />
           </label>
         )}
-        <DatePicker label="Data *" value={date} onChange={setDate} />
+        <DatePicker
+          label="Data *"
+          value={date}
+          onChange={(next) => {
+            setDate(next);
+            if (endDate < next) setEndDate(next);
+          }}
+        />
+        <DatePicker
+          label="Data final"
+          value={endDate}
+          min={date}
+          onChange={setEndDate}
+        />
         <TimeWheelPicker value={time} onChange={setTime} />
+        <label>
+          Horário final
+          <input
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+          />
+        </label>
         <PlaceAutocomplete
           label="Local *"
           value={place}
@@ -385,6 +418,21 @@ export function LocalReservationEditor({
           />
         </label>
         <CurrencySelector value={currency} onChange={setCurrency} />
+        <label>
+          Código da reserva
+          <input value={code} onChange={(e) => setCode(e.target.value)} />
+        </label>
+        <label>
+          Status
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as Reservation["status"])}
+          >
+            <option value="confirmed">Confirmada</option>
+            <option value="pending">Pendente</option>
+            <option value="cancelled">Cancelada</option>
+          </select>
+        </label>
         <AttachmentPicker onChange={setFile} />
         {old?.data.documentId && (
           <small>Anexo atual preservado ao salvar sem um novo arquivo.</small>

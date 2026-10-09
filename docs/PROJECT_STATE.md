@@ -1,10 +1,11 @@
 # Estado técnico — Travel OS V1.1
 
-Atualizado em 06/10/2026. Referência funcional: baseline
+Atualizado em 07/10/2026. Referência funcional: baseline
 `7f1cc01c3bcb0fe61f5f6ceadcbf65085d6322c4`, branch `main`.
 Continuidade aprovada no commit `141f141`; implementação de K01 concluída, validada
-e aprovada pelo usuário em 06/10/2026 para versionamento. Arquitetura e dados
-existentes preservados, sem migração ou limpeza de armazenamento.
+e aprovada pelo usuário em 06/10/2026, versionada no commit `6691395`.
+Correções de estabilização K02/K04/K05/K07 estão no working tree para revisão;
+sem commit, migração ou limpeza de armazenamento.
 
 ## Fonte e limites
 
@@ -20,19 +21,19 @@ Tema escuro, Manrope local e tokens centralizados. Node >=22.12.0, pnpm 11.19.0.
 Dependências: Lucide, Supabase SDK, Leaflet, Workbox e vite-plugin-pwa; testes com
 Vitest, fake-indexeddb e PGlite. Ter dependência instalada não significa uso ativo.
 
-| Local | Responsabilidade |
-|---|---|
-| src/app | Sessão, histórico, seleção de viagem e composição de telas |
-| src/features | Viagens, início, roteiro, álbum e ferramentas |
-| src/components | Formulários compartilhados, controles e mídia |
-| src/domain | Modelos, validações, fases, conversões e mutações |
-| src/data | IndexedDB, repository, engine, journal, arquivos e mídia |
-| src/adapters | Autenticação/viagens locais, preferências e serviços externos |
-| api/places.ts | Proxy Vercel para Google Places; não guarda viagens |
-| supabase | Schema, RLS, RPCs e migrações históricas da V1 |
-| public | Fotos de referência, fonte, licenças e ícones PWA |
-| tests | Domínio, banco, offline, mídia e endpoint; há testes junto a src |
-| docs | Estado, continuidade e evidências de QA |
+| Local          | Responsabilidade                                                                              |
+| -------------- | --------------------------------------------------------------------------------------------- |
+| src/app        | Sessão, histórico, seleção de viagem e composição de telas                                    |
+| src/features   | Viagens, início, roteiro, álbum e ferramentas                                                 |
+| src/components | Formulários compartilhados, controles e mídia                                                 |
+| src/domain     | Modelos, validações, fases, conversões e mutações                                             |
+| src/data       | IndexedDB, repository, engine, journal, arquivos e mídia                                      |
+| src/adapters   | Autenticação/viagens locais, preferências e serviços externos                                 |
+| api/places.ts  | Handler server-side compartilhado por Vercel e pelo middleware local Vite; não guarda viagens |
+| supabase       | Schema, RLS, RPCs e migrações históricas da V1                                                |
+| public         | Fotos de referência, fonte, licenças e ícones PWA                                             |
+| tests          | Domínio, banco, offline, mídia e endpoint; há testes junto a src                              |
+| docs           | Estado, continuidade e evidências de QA                                                       |
 
 App.tsx e Workspace.tsx definem o fluxo ativo. Telas visitadas permanecem montadas;
 trocar de viagem remonta o contexto. Engine usa alterações otimistas, journal local,
@@ -41,27 +42,27 @@ BroadcastChannel. Não há sincronização remota ativa.
 
 ## Funcionalidades
 
-| Área | Estado | Escopo e limitações |
-|---|---|---|
-| Conta local | Implementada/aparentemente funcional | Cadastro, login, edição e recuperação por chave local; sem email |
-| Minhas viagens | Parcial | Criação, edição, ordenação por fase e arquivamento; identidades/metadados preservados na edição (K01); K03 aberto |
-| Início | Parcial | Antes/durante/depois, preparação, próxima atividade, clima e retrospectiva; K05 |
-| Roteiro | Implementado/aparentemente funcional | Timeline, horários, conflitos, duplicação, mover dia e edição; K03/K02 |
-| Reservas | Parcial | Tipos, anexos, local e atividade vinculada; faltam controles de campos relevantes; K02 |
-| Documentos | Implementados/aparentemente funcionais | Anexos locais, visualização, download e tipos personalizados; K06 |
-| Gastos | Implementados/aparentemente funcionais | Orçamento, categorias, divisão e taxas registradas; base de cálculo USD |
-| Compras | Implementadas/aparentemente funcionais | Wishlist, fotos, compra e gasto vinculados em transação; K06 |
-| Bagagem/checklist | Implementados/aparentemente funcionais | Malas, pesos, itens de ida/retorno, compras físicas e preparação |
-| Álbum | Implementado/aparentemente funcional | Importação múltipla, EXIF JPEG, edição, visualizador e compartilhar/download |
-| Conversor | Implementado/aparentemente funcional | Câmbio/cache, unidades e referências de tamanhos por marca |
-| SOS | Implementado/aparentemente funcional | Seguro, contatos, cartão pessoal, hospedagem e documentos essenciais; K02 |
-| Busca e navegação | Implementadas/aparentemente funcionais | Busca local, retorno contextual, Apple Maps/Google Maps/Waze externos |
-| Amigos/viajantes | Parcial | Registros locais; amigos podem ser adicionados/listados; sem colaboração |
-| PWA | Implementada, validação parcial | Manifest, precache e atualização; instalação/uso físico pendentes |
-| Convites entre dispositivos | Não implementados | Interface informa indisponibilidade; código legado não é convite real ativo |
-| Backup/importação .travelos | Documentados, não implementados | Sem restauração independente da origem do navegador |
-| Sincronização/conta online | Não implementadas no fluxo ativo | Supabase desativado; sem backend de contas |
-| IA/tradução livre | Não implementadas no fluxo ativo | Sem integração OpenAI/agent ativa |
+| Área                        | Estado                                 | Escopo e limitações                                                                                                                                                               |
+| --------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Conta local                 | Implementada/aparentemente funcional   | Cadastro, login, edição e recuperação por chave local; sem email                                                                                                                  |
+| Minhas viagens              | Parcial                                | Criação, edição, ordenação por fase e arquivamento; identidades/metadados preservados na edição (K01); K03 aberto                                                                 |
+| Início                      | Parcial                                | Antes/durante/depois, preparação, próxima atividade, clima e retrospectiva; K05                                                                                                   |
+| Roteiro                     | Implementado/aparentemente funcional   | Timeline, horários, conflitos, duplicação, mover dia e edição; K03/K02                                                                                                            |
+| Reservas                    | Parcial                                | Tipo, período, horários, código, status, anexo e local estruturado editáveis; atividade vinculada recebe coordenadas; K02 ainda não representa cada dia de uma estadia no roteiro |
+| Documentos                  | Implementados/aparentemente funcionais | Anexos locais, visualização, download e tipos personalizados; K06                                                                                                                 |
+| Gastos                      | Implementados/aparentemente funcionais | Orçamento, categorias, divisão e taxas registradas; base de cálculo USD                                                                                                           |
+| Compras                     | Implementadas/aparentemente funcionais | Wishlist, fotos, compra e gasto vinculados em transação; K06                                                                                                                      |
+| Bagagem/checklist           | Implementados/aparentemente funcionais | Malas, pesos, itens de ida/retorno, compras físicas e preparação                                                                                                                  |
+| Álbum                       | Implementado/aparentemente funcional   | Importação múltipla, EXIF JPEG, edição, visualizador e compartilhar/download                                                                                                      |
+| Conversor                   | Implementado/aparentemente funcional   | Câmbio/cache, unidades e referências de tamanhos por marca                                                                                                                        |
+| SOS                         | Implementado/aparentemente funcional   | Seguro, contatos, cartão pessoal, hospedagem e documentos essenciais; K02                                                                                                         |
+| Busca e navegação           | Implementadas/aparentemente funcionais | Busca local, retorno contextual, Apple Maps/Google Maps/Waze externos                                                                                                             |
+| Amigos/viajantes            | Parcial                                | Registros locais; amigos podem ser adicionados/listados; sem colaboração                                                                                                          |
+| PWA                         | Implementada, validação parcial        | Manifest, precache e atualização; instalação/uso físico pendentes                                                                                                                 |
+| Convites entre dispositivos | Não implementados                      | Interface informa indisponibilidade; código legado não é convite real ativo                                                                                                       |
+| Backup/importação .travelos | Documentados, não implementados        | Sem restauração independente da origem do navegador                                                                                                                               |
+| Sincronização/conta online  | Não implementadas no fluxo ativo       | Supabase desativado; sem backend de contas                                                                                                                                        |
+| IA/tradução livre           | Não implementadas no fluxo ativo       | Sem integração OpenAI/agent ativa                                                                                                                                                 |
 
 Código aparentemente não utilizado pelo fluxo atual: Today, HomeConnected,
 Travelers/Profile antigos, TripActions, Notifications, TravelMap, adapters/demo,
@@ -88,18 +89,21 @@ legados; câmbio ativo usa currentRate. Não confundir imports com telas acessí
 
 ## Integrações
 
-| Integração | Uso atual | Condições |
-|---|---|---|
-| Google Places | Autocomplete/detalhes via /api/places | GOOGLE_PLACES_API_KEY e ALLOWED_ORIGIN no servidor; frontend opcional VITE_PLACES_ENDPOINT; fallback manual |
-| Frankfurter | Câmbio real | Sem chave; cache identificado no IndexedDB e taxa manual em gastos/compras |
-| Open-Meteo | Clima de sete dias durante viagem | Coordenadas salvas; cache; indisponibilidade explícita |
-| Mapas externos | Abrir navegação | Preferência local; não solicita GPS do aparelho |
-| Supabase | Desativado | isLocal/isDemo verdadeiros, backendClient nulo; SDK/SQL históricos |
-| OpenAI/agent | Ausente no fluxo ativo | Roteamento de modelos é regra de desenvolvimento, não função do aplicativo |
+| Integração     | Uso atual                                                                                           | Condições                                                                                                                                |
+| -------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Geoapify Places | Handler `/api/places` atende função Node compatível e Vite dev/preview; Address Autocomplete, normalização e seleção direta de resultado; fallback manual | Requer `GEOAPIFY_API_KEY` e `ALLOWED_ORIGIN` exata no servidor; segredo nunca vai ao cliente; limitação em memória é por instância |
+| Frankfurter    | Câmbio real                                                                                         | Sem chave; cache identificado no IndexedDB e taxa manual em gastos/compras                                                               |
+| Open-Meteo     | Clima de sete dias durante viagem                                                                   | Coordenadas salvas; cache; indisponibilidade explícita                                                                                   |
+| Mapas externos | Abrir navegação                                                                                     | Preferência local; não solicita GPS do aparelho                                                                                          |
+| Supabase       | Desativado                                                                                          | isLocal/isDemo verdadeiros, backendClient nulo; SDK/SQL históricos                                                                       |
+| OpenAI/agent   | Ausente no fluxo ativo                                                                              | Roteamento de modelos é regra de desenvolvimento, não função do aplicativo                                                               |
 
-Vite dev/preview não executa a função Vercel. Não houve teste autenticado Google
-na auditoria. Nenhuma chave foi adicionada. Condições de deployment constam no
-[README](../README.md); licenças de assets em [ASSETS](../ASSETS.md).
+Vite dev/preview usa o handler server-side compartilhado com Vercel. Nenhuma chave
+Google ou ligação Vercel foi encontrada/configurada neste ambiente. A rota local
+foi exercitada e respondeu JSON 503 quando sem chave; chamada autenticada Google
+e Preview implantado continuam sem validação. Nenhuma chave foi adicionada.
+Condições de deployment constam no [README](../README.md); licenças de assets em
+[ASSETS](../ASSETS.md).
 
 ## Validação registrada
 
@@ -109,8 +113,9 @@ Auditoria de 06/10/2026, em cópia temporária com dados sintéticos:
 - TypeScript principal aprovado com `tsc --noEmit --incremental false`.
 - api/places.ts aprovado em checagem separada com TypeScript estrito.
 - Build Vite aprovado, com manifest, service worker e precache.
-- Três sondagens temporárias confirmaram K02 (coordenadas), K03 e K04.
-  Elas não foram adicionadas ao repositório; criar regressões duráveis ao corrigir.
+- Na auditoria, três sondagens temporárias confirmaram K02 (coordenadas), K03 e
+  K04; regressões duráveis foram adicionadas para K02 e K04 nesta rodada. K03
+  permanece dependente de decisão sobre o limite.
 - Hashes de 112 arquivos conferidos na auditoria, sem alterações.
 
 Limites: testes Node não certificam UI; teste atual de stores não simula atualização
@@ -149,19 +154,43 @@ local offline foi testada após carregar a página; não é nova certificação 
 recarregamento/instalação da PWA offline. Viagens e entidades continuam em stores
 separados; a verificação de referências reflete a leitura feita ao salvar, sem
 transação única entre localStorage e IndexedDB para alterações entre janelas.
-K02–K08 continuam pendentes, sem correções nesta etapa.
+No fechamento de K01, K02–K08 continuavam pendentes; a rodada atual atualiza os
+itens K02/K04/K05/K07 descritos abaixo.
+
+## Estabilização em revisão — 06/10/2026
+
+- **K04 corrigido no working tree:** abertura em cache só enquanto válida;
+  falhas limpam apenas a tentativa correspondente, concorrentes compartilham a
+  abertura e conexão tardia após `blocked` é fechada. Sem limpar/recriar o banco.
+- **K02 parcialmente corrigido:** editor expõe data final, horário final, código e
+  status; edição preserva-os. Atividade vinculada recebe `location`, endereço,
+  `providerId` e coordenadas disponíveis. Reservas de vários dias continuam com
+  uma única atividade no roteiro, na data inicial.
+- **K05 parcialmente corrigido:** Home recarrega fotos quando o evento local de
+  mídia informa importação/edição/arquivamento. A contagem de favoritos ainda usa
+  `memory.favorite`; o Álbum não oferece o mesmo modelo de favoritos.
+- **K07 em preparação técnica:** Vite dev/preview e função Node do host usam o
+  mesmo handler. Sem chave ou origem configurada, devolve JSON 503 e a UI oferece
+  fallback manual. Contrato, build e pacote de fonte estão verificados; pesquisa
+  Google real e limites/quota distribuídos dependem da configuração/deploy manual.
+
+Verificação desta rodada: `pnpm test` 71/71 em 12 arquivos; TypeScript principal,
+checagem estrita separada de `api/places.ts`, `pnpm build` e `git diff --check`
+aprovados. Chrome temporário em 402 px criou viagem e confirmou mensagem de Places
+sem chave; salvou/reabriu reserva sintética com período, horário final, código e
+status. Perfil isolado; nenhum dado pessoal.
 
 ## Problemas conhecidos (abertos)
 
-| ID | Problema e evidência | Impacto |
-|---|---|---|
-| K02 | LocalReservationEditor não oferece término, horário final, código/status; novos términos iguais ao início. reservationChanges não copia coordenadas/local; este último reproduzido | Hospedagem atual e integração ao roteiro incompletas |
-| K03 | Editor ativo aceita período acima de 366 dias; daysOf corta em 366. Sondagem: 730 dias calculados, 366 navegáveis | Parte do roteiro fica inacessível |
-| K04 | database guarda Promise rejeitada após falha de abertura, sem nova tentativa na mesma página; reproduzido | Recuperação depende de recarregamento |
-| K05 | LocalHome carrega fotos apenas por trip.id e usa memory.favorite na retrospectiva; análise de código | Contagem desatualizada e favoritos desconectados do álbum atual |
-| K06 | Blobs são gravados antes de concluir formulário, sem limpeza correspondente ao cancelar/substituir/remover referência; cópias source/context | Uso de quota por mídia sem referência ativa |
-| K07 | Places aceita ausência de Origin; limite por IP/instância em memória, sem quota distribuída | Proteção limitada contra consumo do endpoint |
-| K08 | Código legado/mocks junto ao ativo; forms/Operations com cerca de 1.200–1.400 linhas; sem teste de UI e migração V1 preenchida; endpoint fora do build tipado | Manutenção e cobertura insuficientes |
+| ID  | Problema e evidência                                                                                                                                                                 | Impacto                                                                                              |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| K02 | Corrigidos controles/cópia dos campos e coordenadas; estadia ainda gera uma atividade apenas na data inicial e horário final em dia diferente não vira duração de roteiro            | Representação diária da hospedagem no roteiro permanece limitada                                     |
+| K03 | Editor ativo aceita período acima de 366 dias; daysOf corta em 366. Sondagem: 730 dias calculados, 366 navegáveis                                                                    | Parte do roteiro fica inacessível                                                                    |
+| K04 | Resolvido no working tree, ainda sem commit/aprovação                                                                                                                                | Regressão cobre falha transitória, chamadas concorrentes e recuperação                               |
+| K05 | Contagem de fotos atualiza após evento de mídia; favoritos ainda vêm de `memory.favorite`, legado sem equivalente no Álbum                                                           | Favoritos desconectados do álbum atual; requer decisão para consolidar                               |
+| K06 | Blobs são gravados antes de concluir formulário, sem limpeza correspondente ao cancelar/substituir/remover referência; cópias source/context                                         | Uso de quota por mídia sem referência ativa                                                          |
+| K07 | Integração Geoapify e chave server-side verificadas localmente; limite continua por IP/instância em memória, sem quota distribuída | Deploy e variáveis do host ainda aguardam ação manual do usuário; proteção de consumo não é distribuída |
+| K08 | Código legado/mocks junto ao ativo; forms/Operations com cerca de 1.200–1.400 linhas; sem teste de UI e migração V1 preenchida; endpoint fora do build tipado                        | Manutenção e cobertura insuficientes                                                                 |
 
 Limitações documentadas (não bugs novos): ausência de backup, sincronização,
 criptografia dos blobs e certificação física. HEIC depende do navegador; fotos
@@ -172,5 +201,70 @@ de fotos até 30 MB. Não foram encontrados TODO/FIXME/HACK/XXX na auditoria.
 
 Próximas prioridades e critérios em [ROADMAP](ROADMAP.md). Decisões confirmadas em
 [DECISIONS](DECISIONS.md). Questões excepcionais em [ASTRA_QUEUE](ASTRA_QUEUE.md),
-sem tarefas. K01 concluído, validado e aprovado pelo usuário; próxima prioridade
-é K04, ainda não iniciada.
+sem tarefas. K01 permanece concluído e aprovado. K04 e partes de K02/K05/K07
+estão corrigidas no working tree desta rodada e aguardam revisão; não criar commit
+antes da aprovação do usuário.
+
+## Handoff externo de UX/UI
+
+[UX_AUDIT_HANDOFF](ux/UX_AUDIT_HANDOFF.md), preparado em 06/10/2026 a partir do
+código no commit `6691395`: inventário ativo/legado, navegação, fases da viagem,
+recursos e limitações para auditoria externa. Registra Foravento, logo oficial e
+identidade aprovada como requisitos futuros da build de identidade V1.2 (D019),
+sem aplicar branding ou mudar funcionalidades. K04 estava não iniciado quando o
+handoff foi criado; sua correção atual consta acima.
+
+## Preparação manual de Places — histórico de 06/10/2026, provider substituído em 07/10/2026
+
+- `/api/places` exige `GOOGLE_PLACES_API_KEY` server-side e `ALLOWED_ORIGIN`
+  igual à origem completa do app (esquema e host, sem caminho/barra final). Valida
+  origem exata, sessão, place ID, formato de resposta e coordenadas. Places API
+  (New) não é filtrada por tipo e pode consultar tipos disponíveis no catálogo.
+- Autocomplete e detalhes normalizam nome, endereço, place ID, localidade, região,
+  país e coordenadas. Atividades e reservas guardam o mesmo `PlaceData`; o campo
+  manual continua disponível sem serviço, com erro, offline ou sem resultados.
+- `pnpm build` agora verifica `api/places.ts` com TypeScript estrito além do app.
+  README documenta variáveis, configuração externa de Google Cloud e deploy do
+  fonte com função Node; `dist/` isolado não contém nem executa `/api`.
+- Testes mockam o provider e cobrem respostas com/sem resultados, formatos
+  inválidos, erros e 429, origem/configuração, normalização, coordenadas, offline,
+  seleção do detalhe e persistência/reabertura em atividade e reserva.
+- A integração real ainda depende da chave e da origem configuradas pelo dono do
+  deploy e de publicação manual em host com suporte a função Node. Nenhum deploy
+  ou acesso à conta do host foi feito nesta rodada.
+- Validação desta rodada: 80/80 testes em 12 arquivos; TypeScript do aplicativo
+  e checagem estrita da função aprovados; `pnpm build` e `git diff --check`
+  aprovados. O build cliente tem 15 arquivos e não contém nome da variável server
+  nem padrões de chaves Google, chaves privadas ou tokens encontrados na varredura.
+- ZIP de 101 arquivos inclui fonte, lockfile, configuração da função, testes e
+  documentação; exclui dependências, `.git`, ambientes locais, builds, capturas
+  pessoais e QA com dados pessoais. Inspeção de caminhos e conteúdo aprovada.
+
+## Migração Places para Geoapify — 07/10/2026
+
+- `/api/places` mantém contrato interno e valida `GEOAPIFY_API_KEY` e `ALLOWED_ORIGIN`
+  no servidor. A integração anterior com Google Places foi removida do fluxo de
+  pesquisa; Google Maps para navegação externa não foi alterado.
+- `api/providers/geoapify.ts` usa Geoapify Address Autocomplete e converte
+  nome, endereço formatado, place ID, latitude/longitude, cidade, região, país,
+  CEP, categoria e atribuição para o modelo interno. A busca cobre nomes de
+  lugares e endereços conforme o catálogo do provider; `LAX` tem alias explícito
+  para Los Angeles International Airport.
+- Atividades e reservas mantêm o mesmo `PlaceData`; sugestões são selecionadas
+  diretamente sem nova chamada de detalhes. O campo permanece editável e aceita
+  local manual em erro, ausência de configuração, rate limit ou offline.
+- A interface mostra crédito Geoapify e OpenStreetMap próximo a sugestões/locais
+  selecionados. Respostas antigas de autocomplete são descartadas por sequência
+  de requisição e chamadas anteriores são abortadas.
+- Validação real local com chave já configurada, sem expor seu valor: Griffith
+  Observatory, Warner Bros Studio, Olive Garden e LAX responderam pelo endpoint;
+  LAX foi normalizado ao aeroporto solicitado. Warner Bros e Olive Garden são
+  buscas globais/ambíguas: a pessoa deve escolher a unidade correta. Outros
+  códigos IATA não têm aliases específicos e podem exigir nome/cidade.
+- Fluxo visual sintético: buscar Griffith Observatory, selecionar sugestão,
+  salvar atividade e reabri-la preservou nome/endereço; atribuição ficou visível.
+  Testes cobrem coordenadas e estrutura completa persistidas em atividade e
+  reserva. Dados de conta/viagem foram sintéticos em sessão de navegador isolada.
+- A chave continua ausente do bundle por desenho (lida apenas por função server
+  side/local Vite middleware). No host manual, configure `GEOAPIFY_API_KEY` e
+  `ALLOWED_ORIGIN` conforme README. Nenhum acesso ou deploy à Vercel foi feito.

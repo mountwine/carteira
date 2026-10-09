@@ -1,45 +1,83 @@
-import type { PlaceData } from "../domain/models";
+import type { PlaceSuggestion } from "../domain/models";
 import { get, put } from "../data/database";
+
+export function createPlacesRequestGate() {
+  let current = 0;
+  return {
+    next() {
+      current += 1;
+      return current;
+    },
+    isCurrent(request: number) {
+      return request === current;
+    },
+    cancel(request: number) {
+      if (request === current) current += 1;
+    },
+  };
+}
+
 export async function searchPlaces(
   query: string,
   signal?: AbortSignal,
-  sessionToken?: string,
-): Promise<PlaceData[]> {
+): Promise<PlaceSuggestion[]> {
+  if (query.trim().length < 3) return [];
   if (!navigator.onLine)
     throw new Error("Sem conexão. Você pode informar o local manualmente.");
   const endpoint = import.meta.env.VITE_PLACES_ENDPOINT || "/api/places";
-  const res = await fetch(
-    `${endpoint}?q=${encodeURIComponent(query)}&session=${encodeURIComponent(sessionToken ?? "")}`,
-    { signal },
-  );
-  if (!res.ok)
-    throw new Error(
-      res.status === 503
-        ? "Pesquisa online não configurada. Informe o local manualmente."
-        : "Pesquisa indisponível. Informe o local manualmente.",
+  try {
+    const res = await fetch(
+      `${endpoint}?q=${encodeURIComponent(query.trim())}`,
+      { signal },
     );
-  if (!res.headers.get("content-type")?.includes("application/json"))
-    throw new Error(
-      "Pesquisa online não configurada. Informe o local manualmente.",
-    );
-  const data = await res.json();
-  if (!Array.isArray(data.places)) throw new Error("Pesquisa indisponível.");
-  return data.places;
+    if (!res.ok)
+      throw new Error(
+        res.status === 503
+          ? "Pesquisa online não configurada. Informe o local manualmente."
+          : res.status === 429
+            ? "Muitas pesquisas. Tente novamente em instantes ou informe o local manualmente."
+            : "Pesquisa indisponível. Informe o local manualmente.",
+      );
+    if (!res.headers.get("content-type")?.includes("application/json"))
+      throw new Error("Pesquisa indisponível. Informe o local manualmente.");
+    const data: unknown = await res.json();
+    if (!isRecord(data) || !Array.isArray(data.places))
+      throw new Error("Pesquisa indisponível. Informe o local manualmente.");
+    return data.places
+      .map(normalizePlace)
+      .filter((place): place is PlaceSuggestion => !!place);
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    if (error instanceof Error && error.message.includes("manualmente")) throw error;
+    throw new Error("Pesquisa indisponível. Você pode informar o local manualmente.");
+  }
 }
-export async function placeDetails(
-  place: PlaceData,
-  session: string,
-): Promise<PlaceData> {
-  if (!place.providerId) return place;
-  const endpoint = import.meta.env.VITE_PLACES_ENDPOINT || "/api/places";
-  const res = await fetch(
-    `${endpoint}?id=${encodeURIComponent(place.providerId)}&session=${encodeURIComponent(session)}`,
-  );
-  if (!res.ok)
-    throw new Error(
-      "Não foi possível carregar o endereço. Selecione novamente ou informe manualmente.",
-    );
-  return res.json();
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function normalizePlace(value: unknown): PlaceSuggestion | undefined {
+  if (!isRecord(value) || typeof value.name !== "string" || !value.name.trim()) return;
+  if (value.provider !== "geoapify" || typeof value.attribution !== "string") return;
+  const place: PlaceSuggestion = {
+    name: value.name.trim(),
+    provider: "geoapify",
+    attribution: value.attribution,
+  };
+  for (const key of ["address", "city", "region", "country", "postalCode", "category", "providerId"] as const) {
+    const field = value[key];
+    if (typeof field === "string" && field.trim()) place[key] = field.trim();
+  }
+  if (
+    typeof value.lat === "number" && Number.isFinite(value.lat) &&
+    value.lat >= -90 && value.lat <= 90 &&
+    typeof value.lng === "number" && Number.isFinite(value.lng) &&
+    value.lng >= -180 && value.lng <= 180
+  ) {
+    place.lat = value.lat;
+    place.lng = value.lng;
+  }
+  return place;
 }
 export interface FxQuote {
   id: string;

@@ -168,6 +168,26 @@ export async function photos(tripId: string, type: Photo["type"] = "album") {
         a.createdAt.localeCompare(b.createdAt),
     );
 }
+export function subscribeToPhotos(
+  tripId: string,
+  onUpdate: (items: Photo[]) => void,
+  events: Pick<
+    EventTarget,
+    "addEventListener" | "removeEventListener"
+  > = window,
+) {
+  let active = true;
+  const load = () =>
+    void photos(tripId).then((items) => {
+      if (active) onUpdate(items);
+    });
+  events.addEventListener("travel-os-media", load);
+  load();
+  return () => {
+    active = false;
+    events.removeEventListener("travel-os-media", load);
+  };
+}
 export async function mediaBlob(id: string, thumb = false) {
   const photo = await get<Photo>("media", id);
   if (!photo || photo.deleted) throw new Error("Foto indisponível.");

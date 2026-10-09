@@ -7,7 +7,11 @@ import {
   entity,
   ofKind,
 } from "./entities";
-import type { Trip, User } from "./models";
+import type { PlaceData, Trip, User } from "./models";
+export function activityPlaceId(place: PlaceData, previousId?: string) {
+  if (place.providerId) return place.providerId;
+  return place.provider === "manual" ? "" : (previousId ?? "");
+}
 export const minutes = (time: string) =>
   time ? Number(time.slice(0, 2)) * 60 + Number(time.slice(3)) : 0;
 export const clock = (value: number) =>
@@ -84,10 +88,11 @@ export function reservationChanges(
         ? Math.max(15, minutes(r.endTime) - minutes(r.time))
         : 60,
     fixed: Boolean(r.time),
-    placeId: "",
-    address: r.address,
-    lat: null,
-    lng: null,
+    location: r.location,
+    placeId: r.location?.providerId ?? "",
+    address: r.location?.address || r.address,
+    lat: r.location?.lat ?? null,
+    lng: r.location?.lng ?? null,
     participants: trip.members
       .filter((m) => m.invitationState === "accepted")
       .map((m) => m.userId),
@@ -106,15 +111,26 @@ export function reservationChanges(
             data: {
               ...existing.data,
               ...activity,
-              placeId: existing.data.placeId,
+              placeId:
+                activity.placeId ||
+                (existing.data.address === activity.address
+                  ? existing.data.placeId
+                  : ""),
+              location:
+                activity.location ??
+                (existing.data.address === activity.address
+                  ? existing.data.location
+                  : undefined),
               lat:
-                existing.data.address === activity.address
+                activity.lat ??
+                (existing.data.address === activity.address
                   ? existing.data.lat
-                  : null,
+                  : null),
               lng:
-                existing.data.address === activity.address
+                activity.lng ??
+                (existing.data.address === activity.address
                   ? existing.data.lng
-                  : null,
+                  : null),
               status: existing.data.status,
               participants: existing.data.participants,
             },

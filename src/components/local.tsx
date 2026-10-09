@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import type { PlaceData } from "../domain/models";
-import { searchPlaces, placeDetails } from "../adapters/external";
+import type { PlaceData, PlaceSuggestion } from "../domain/models";
+import { createPlacesRequestGate, searchPlaces } from "../adapters/external";
 import { Modal } from "./forms";
 export const currencies = [
   "BRL",
@@ -113,21 +113,22 @@ export function PlaceAutocomplete({
   value: PlaceData;
   onChange: (p: PlaceData) => void;
 }) {
-  const [options, setOptions] = useState<PlaceData[]>([]),
+  const [options, setOptions] = useState<PlaceSuggestion[]>([]),
     [status, setStatus] = useState(""),
     [query, setQuery] = useState(""),
     [index, setIndex] = useState(0);
-  const session = useRef(crypto.randomUUID());
+  const requests = useRef(createPlacesRequestGate());
   useEffect(() => {
-    if (query.trim().length < 3) {
-      setOptions([]);
-      return;
-    }
+    const request = requests.current.next();
+    setOptions([]);
+    setStatus("");
+    if (query.trim().length < 3) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
       setStatus("Buscando lugares…");
-      void searchPlaces(query, controller.signal, session.current)
+      void searchPlaces(query, controller.signal)
         .then((data) => {
+          if (!requests.current.isCurrent(request)) return;
           setOptions(data);
           setIndex(0);
           setStatus(
@@ -135,7 +136,7 @@ export function PlaceAutocomplete({
           );
         })
         .catch((e) => {
-          if (e.name !== "AbortError") {
+          if (requests.current.isCurrent(request) && e.name !== "AbortError") {
             setOptions([]);
             setStatus(e.message);
           }
@@ -144,20 +145,14 @@ export function PlaceAutocomplete({
     return () => {
       clearTimeout(timer);
       controller.abort();
+      requests.current.cancel(request);
     };
   }, [query]);
-  async function choose(p: PlaceData) {
-    setStatus("Carregando local…");
-    try {
-      const full = await placeDetails(p, session.current);
-      onChange(full);
-      setQuery("");
-      setOptions([]);
-      setStatus("");
-      session.current = crypto.randomUUID();
-    } catch (e) {
-      setStatus((e as Error).message);
-    }
+  function choose(place: PlaceSuggestion) {
+    onChange(place);
+    setQuery("");
+    setOptions([]);
+    setStatus("");
   }
   return (
     <div className="place-autocomplete">
@@ -196,27 +191,31 @@ export function PlaceAutocomplete({
       </label>
       {status && <small role="status">{status}</small>}
       {!!options.length && (
-        <>
-          <div role="listbox" aria-label={`Sugestões de ${label}`}>
-            {options.map((p, i) => (
-              <button
-                type="button"
-                role="option"
-                aria-selected={i === index}
-                key={p.providerId ?? p.name}
-                onClick={() => void choose(p)}
-              >
-                <strong>{p.name}</strong>
-                <small>{p.address}</small>
-              </button>
-            ))}
-          </div>
-          {options.some((p) => p.provider === "google") && (
-            <small className="GMP-attribution" translate="no">
-              Google Maps
-            </small>
-          )}
-        </>
+        <div role="listbox" aria-label={`Sugestões de ${label}`}>
+          {options.map((p, i) => (
+            <button
+              type="button"
+              role="option"
+              aria-selected={i === index}
+              key={p.providerId ?? p.name}
+              onClick={() => void choose(p)}
+            >
+              <strong>{p.name}</strong>
+              <small>{p.address}</small>
+            </button>
+          ))}
+        </div>
+      )}
+      {(options.some((p) => p.provider === "geoapify") || value.provider === "geoapify") && (
+        <small className="places-attribution" translate="no">
+          <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">
+            Powered by Geoapify
+          </a>
+          <span> · </span>
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
+            © OpenStreetMap contributors
+          </a>
+        </small>
       )}
     </div>
   );

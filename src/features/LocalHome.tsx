@@ -7,7 +7,7 @@ import { TripCover } from "../components/MediaImage";
 import { ProgressBar } from "../components/local";
 import { RecordEditor, RecordActions, Page, Modal } from "../components/forms";
 import { NavigateButton } from "./LocalSettings";
-import { photos, type Photo } from "../data/media";
+import { subscribeToPhotos, type Photo } from "../data/media";
 import { weatherForecast, type WeatherForecast } from "../adapters/external";
 function dateRange(start: string, end: string) {
   return `${new Date(start + "T12:00:00").toLocaleDateString("pt-BR", { day: "numeric", month: "short" }).replace(".", "")} — ${new Date(end + "T12:00:00").toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" }).replace(".", "")}`.toUpperCase();
@@ -234,7 +234,7 @@ export function LocalHome() {
     return () => controller.abort();
   }, [latitude, longitude, ctx.phase, t.activeScreen]);
   useEffect(() => {
-    void photos(t.trip.id).then(setAlbum);
+    return subscribeToPhotos(t.trip.id, setAlbum);
   }, [t.trip.id]);
   const bought = ofKind(t.records, "shopping").filter((s) => s.data.bought),
     expenses = ofKind(t.records, "expense"),

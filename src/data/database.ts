@@ -1,7 +1,9 @@
 let connection: Promise<IDBDatabase> | undefined;
 export function database() {
-  return (connection ??= new Promise<IDBDatabase>((resolve, reject) => {
+  if (connection) return connection;
+  const opening = new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open("travel-os-v1", 2);
+    let settled = false;
     request.onupgradeneeded = () => {
       for (const name of [
         "records",
@@ -17,22 +19,33 @@ export function database() {
         if (!request.result.objectStoreNames.contains(name))
           request.result.createObjectStore(name, { keyPath: "id" });
     };
-    request.onblocked = () =>
+    request.onblocked = () => {
+      settled = true;
       reject(
         new Error(
           "Feche outras janelas do Travel OS para atualizar o armazenamento. Seus dados foram preservados.",
         ),
       );
+    };
     request.onsuccess = () => {
+      if (settled) {
+        request.result.close();
+        return;
+      }
       request.result.onversionchange = () => {
         request.result.close();
-        connection = undefined;
+        if (connection === opening) connection = undefined;
       };
       resolve(request.result);
     };
     request.onerror = () =>
       reject(new Error("Não foi possível abrir o armazenamento offline."));
-  }));
+  });
+  connection = opening;
+  void opening.catch(() => {
+    if (connection === opening) connection = undefined;
+  });
+  return opening;
 }
 export const requestResult = <T>(r: IDBRequest<T>) =>
   new Promise<T>((resolve, reject) => {

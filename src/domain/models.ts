@@ -9,10 +9,17 @@ export interface PlaceData {
   city?: string;
   region?: string;
   country?: string;
+  postalCode?: string;
+  category?: string;
+  attribution?: string;
   lat?: number;
   lng?: number;
   providerId?: string;
   provider?: string;
+}
+export interface PlaceSuggestion extends PlaceData {
+  provider: "geoapify";
+  attribution: string;
 }
 export interface Destination {
   place?: PlaceData;

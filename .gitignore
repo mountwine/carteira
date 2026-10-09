@@ -4,6 +4,7 @@ node_modules/
 dist/
 build/
 coverage/
+*.zip
 *.tsbuildinfo
 
 # Tool caches and local deployment metadata
