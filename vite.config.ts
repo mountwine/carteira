@@ -90,15 +90,15 @@ export default defineConfig(({ mode }) => {
         registerType: "prompt",
         includeAssets: ["icon-192.png", "icon-512.png"],
         manifest: {
-          name: "Travel OS",
-          short_name: "Travel OS",
+          name: "Foravento",
+          short_name: "Foravento",
           description: "Sua viagem, em um só lugar.",
           lang: "pt-BR",
           start_url: "/",
           scope: "/",
           display: "standalone",
-          background_color: "#061321",
-          theme_color: "#061321",
+          background_color: "#061923",
+          theme_color: "#061923",
           icons: [
             {
               src: "/icon-192.png",

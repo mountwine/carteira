@@ -1,6 +1,6 @@
 # Registro de decisões — Travel OS / Foravento
 
-Atualizado em 07/10/2026. Registra somente escolhas comprovadas no projeto ou
+Atualizado em 20/10/2026. Registra somente escolhas comprovadas no projeto ou
 confirmadas pelo usuário. Arquitetura vigente não implica preferência por mantê-la
 para sempre; uma mudança exige decisão explícita e referência que a substitua.
 Bugs, tarefas e propostas pertencem a PROJECT_STATE/ROADMAP, não a este registro.
@@ -102,9 +102,10 @@ trabalho futuro em [ROADMAP](ROADMAP.md).
 
 ### D009 — Nome Foravento
 
-- Estado: confirmado; substituição futura.
+- Estado: confirmado; aplicação visual iniciada na V1.2.
 - Decisão: o nome provisório Travel OS será substituído por **Foravento**.
-- Estado atual: código, interface e baseline ainda usam Travel OS.
+- Estado atual: entrada, cabeçalho, título e manifesto usam Foravento; nomes
+  internos de armazenamento e outras telas ainda podem conter Travel OS.
 - Consequência: registrar o novo nome como destino da identidade, sem afirmar
   que a renomeação já foi aplicada.
 
@@ -127,13 +128,12 @@ trabalho futuro em [ROADMAP](ROADMAP.md).
 
 ### D012 — Início da identidade visual na V1.2
 
-- Estado: confirmado; marco futuro.
+- Estado: confirmado; marco iniciado em 20/10/2026.
 - Decisão: a nova identidade visual do Foravento começará a ser aplicada na V1.2.
-- Estado atual: baseline funcional é Travel OS V1.1, sem essa aplicação.
-- Consequência: planejar a transição sem declarar implementação ou fechamento
-  completo da identidade na V1.2. A obrigatoriedade da logo oficial e da
-  identidade aprovada foi confirmada posteriormente em D019; seus artefatos
-  não foram identificados no material examinado.
+- Estado atual: base funcional V1.1 preservada; primeiro bloco visual V1.2 em revisão.
+- Consequência: registrar o avanço por blocos sem declarar a identidade completa.
+  A obrigatoriedade da logo oficial e da identidade aprovada consta em D019;
+  confirmar os arquivos finais antes dos próximos blocos visuais.
 
 ### D013 — Viajantes da viagem selecionada
 
@@ -172,14 +172,13 @@ trabalho futuro em [ROADMAP](ROADMAP.md).
 - Consequência: manter o que existe e planejar a lacuna de roupas femininas;
   referências devem continuar identificadas por marca, sem equivalência universal.
 
-### D017 — Tradutor e Viajantes permanecem no produto
+### D017 — Tradutor e Viajantes permanecem no produto (substituída em parte por D021)
 
-- Estado: confirmado; permanência de produto.
+- Estado: decisão histórica; permanência do Tradutor substituída por D021 em 20/10/2026. A permanência de Viajantes segue vigente.
 - Decisão: Tradutor e Viajantes permanecem como funcionalidades do produto.
 - Estado atual: Viajantes tem tela local ativa; Tradutor não tem tela ativa nem
   tradução livre implementada, embora existam phrasebook/adapters legados.
-- Consequência: não excluir essas áreas do escopo de produto. Provider, operação
-  online/offline, interface e versão de entrega do Tradutor ainda não foram definidos.
+- Consequência histórica: a parte sobre Tradutor não orienta mais a V1.2.
 
 ### D018 — Duas navegações principais no Álbum
 
@@ -195,23 +194,38 @@ trabalho futuro em [ROADMAP](ROADMAP.md).
 
 ### D019 — Integração obrigatória da marca na build de identidade V1.2
 
-- Estado: confirmado pelo usuário em 06/10/2026; implementação futura.
+- Estado: confirmado pelo usuário em 06/10/2026; implementação parcial.
 - Decisão: a próxima build que implementar a identidade visual deve integrar
   Foravento em substituição a Travel OS na interface, a nova logo oficial e a
   identidade visual aprovada. Atualizar posteriormente nome exibido, ícones,
   splash/PWA e demais pontos de branding aplicáveis.
 - Fonte: pedido explícito do usuário para o handoff externo de UX/UI.
-- Estado atual: marca Travel OS ainda presente; arquivos oficiais novos e
-  especificações aprovadas não identificados no material examinado.
-- Consequência: requisito obrigatório para a futura implementação da V1.2;
-  preservar arquitetura e dados, sem reescrita motivada pela marca. Não inventar
-  artefatos substitutos nem implementar a mudança nesta tarefa documental.
+- Estado atual: nome e símbolo enviados pelo usuário foram aplicados à entrada
+  e ao cabeçalho. Ícones instaláveis, splash e demais pontos de marca seguem
+  pendentes; os HTMLs das Rodadas 03/04 foram recebidos em 20/10/2026, mas o
+  master vetorial oficial do símbolo não foi disponibilizado.
+- Consequência: preservar arquitetura e dados, sem reescrita motivada pela marca;
+  conferir a versão final dos ativos e completar os pontos de branding aplicáveis.
 - Referência: [handoff UX/UI](ux/UX_AUDIT_HANDOFF.md).
+
+### D020 — Direção visual e navegação V1.2
+
+- Estado: confirmado pelo usuário em 20/10/2026; aplicação em andamento.
+- Decisão: Direção B — Em Movimento; Design System da Rodada 04 como referência visual principal; navegação Início / Roteiro / + / Álbum / Mais; apenas modo escuro. Preservar a logo oficial e Geoapify em `/api/places`.
+- Fonte: aprovação explícita do usuário e materiais `Foravento-Rodada-03-Direcoes-Visuais.html` e `Foravento-Rodada-04-Design-System.html`.
+- Consequência: usar os tokens e componentes da Rodada 04 sobre a arquitetura existente, sem reconstruir telas funcionalmente corretas. Minhas Viagens é a primeira tela em revisão visual; as demais aguardam aprovação.
+
+### D021 — Tradutor fora da V1.2 e cards de Minhas Viagens
+
+- Estado: confirmado pelo usuário em 20/10/2026; substitui a parte do Tradutor em D017.
+- Decisão: remover Tradutor do escopo da V1.2. Viajantes permanece no produto. Minhas Viagens usa cards horizontais com capa real ou fundo escuro, nome, datas, quantidade de viajantes e estado da fase; tocar abre e o lápis edita.
+- Fonte: instrução explícita do usuário após receber o guia V1.2.
+- Consequência: não criar tela/atalho do Tradutor na V1.2; manter eventual código legado sem exclusão destrutiva nesta etapa. A composição dos cards deve seguir o guia e a Rodada 04, preservando os dados e a ordem por fase.
 
 ## Como acrescentar decisões
 
 Usar ID estável, data, estado (vigente/substituída), decisão, fonte de confirmação
 e consequências. Ao substituir, preservar o registro anterior e vincular o novo.
-Não registrar propostas pendentes como aprovadas. D009–D019 são decisões de produto
+Não registrar propostas pendentes como aprovadas. D009–D021 registram decisões de produto
 confirmadas; suas lacunas de implementação continuam abertas. As restrições da
 etapa atual não são proibições permanentes.

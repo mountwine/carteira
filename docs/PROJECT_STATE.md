@@ -1,11 +1,42 @@
-# Estado técnico — Travel OS V1.1
+# Estado técnico — Foravento V1.2 em implantação (base funcional V1.1)
 
-Atualizado em 07/10/2026. Referência funcional: baseline
-`7f1cc01c3bcb0fe61f5f6ceadcbf65085d6322c4`, branch `main`.
-Continuidade aprovada no commit `141f141`; implementação de K01 concluída, validada
-e aprovada pelo usuário em 06/10/2026, versionada no commit `6691395`.
-Correções de estabilização K02/K04/K05/K07 estão no working tree para revisão;
-sem commit, migração ou limpeza de armazenamento.
+Atualizado em 20/10/2026. Referência funcional: checkpoint `b4c8568`
+(Geoapify e estabilização), branch `main`; baseline original `7f1cc01` e K01
+`6691395`. A V1.2 iniciou no shell visual e em Minhas Viagens, ainda sem commit. K02/K04/K05/K07
+foram preservados no checkpoint; nenhuma migração ou limpeza de dados foi feita.
+
+## Primeiro bloco visual V1.2 — em revisão
+
+- A entrada, o cabeçalho, o título do navegador e o nome do manifesto exibem
+  **Foravento**. O símbolo enviado pelo usuário em 20/10/2026 foi copiado sem
+  redesenho para `public/foravento-mark.png` e aparece na entrada e no cabeçalho.
+- A Rodada 03 confirma Direção B — Em Movimento; a Rodada 04 define os tokens
+  finais: canvas `#061923`, superfície `#102734`, ação `#315CCB`, seleção
+  `#6799F0`, Archivo para títulos e Manrope para operação. As fontes ficam
+  locais. O símbolo usado coincide com o asset incorporado à Rodada 04.
+  Cabeçalho separa marca/conta da viagem selecionada/busca. Navegação mantém
+  Início / Roteiro / + / Álbum / Mais; o + continua abrindo as quatro ações.
+- O PRD e os mockups enviados são referências da V1 anterior: as abas Agente e
+  Explorar neles não foram ativadas. A ordem V1.2 veio da instrução atual do usuário.
+- Minhas Viagens agora usa cards horizontais agrupados por fase, capa real ou
+  fundo escuro, contagem de viajantes e estado da fase; abrir e editar têm
+  alvos separados de 48 px. O formulário conserva
+  persistência, campos e validações; recebeu estilo dos controles da V1.2.
+- Os HTMLs das Rodadas 01–04 foram recebidos e consultados; as pranchas são
+  referência ilustrativa, e os valores explícitos da Rodada 04 prevalecem.
+  A versão vetorial master do símbolo ainda não foi disponibilizada.
+- Ícones instaláveis, splash e demais telas ainda conservam elementos V1.1.
+  A atualização de nome no manifesto não substitui os ícones instalados.
+- A prévia local `127.0.0.1:5174` recebeu `ALLOWED_ORIGIN` apenas no processo do
+  servidor; a chave Geoapify preexistente permaneceu no ambiente server-side.
+  Resposta real de `/api/places` incluiu nome, endereço, identificador e
+  coordenadas. Origem, destino, atividade e reserva exibiram sugestões reais;
+  locais selecionados foram salvos e reabertos em dados sintéticos isolados.
+  `localhost:5173` tem origem e armazenamento distintos, preservados.
+- Cards com foto e fallback escuro foram conferidos em 375/402/440 px, sem
+  rolagem horizontal; abrir o card e o lápis dispararam ações independentes.
+  `pnpm test` aprovou 83/83 testes; TypeScript do app e da API, `pnpm build`
+  (Vite/PWA) e `git diff --check` aprovaram. Sem certificação física.
 
 ## Fonte e limites
 
@@ -17,7 +48,7 @@ A auditoria não abriu o aplicativo com dados pessoais nem alterou banco real.
 ## Arquitetura
 
 SPA mobile em português brasileiro: React 19, TypeScript estrito, Vite e PWA.
-Tema escuro, Manrope local e tokens centralizados. Node >=22.12.0, pnpm 11.19.0.
+Tema escuro, Archivo/Manrope locais e tokens centralizados. Node >=22.12.0, pnpm 11.19.0.
 Dependências: Lucide, Supabase SDK, Leaflet, Workbox e vite-plugin-pwa; testes com
 Vitest, fake-indexeddb e PGlite. Ter dependência instalada não significa uso ativo.
 
@@ -62,7 +93,7 @@ BroadcastChannel. Não há sincronização remota ativa.
 | Convites entre dispositivos | Não implementados                      | Interface informa indisponibilidade; código legado não é convite real ativo                                                                                                       |
 | Backup/importação .travelos | Documentados, não implementados        | Sem restauração independente da origem do navegador                                                                                                                               |
 | Sincronização/conta online  | Não implementadas no fluxo ativo       | Supabase desativado; sem backend de contas                                                                                                                                        |
-| IA/tradução livre           | Não implementadas no fluxo ativo       | Sem integração OpenAI/agent ativa                                                                                                                                                 |
+| IA/tradução livre           | Não implementadas no fluxo ativo       | Sem integração OpenAI/agent ativa; Tradutor removido do escopo V1.2 por D021                                                                                                      |
 
 Código aparentemente não utilizado pelo fluxo atual: Today, HomeConnected,
 Travelers/Profile antigos, TripActions, Notifications, TravelMap, adapters/demo,
@@ -89,19 +120,18 @@ legados; câmbio ativo usa currentRate. Não confundir imports com telas acessí
 
 ## Integrações
 
-| Integração     | Uso atual                                                                                           | Condições                                                                                                                                |
-| -------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Integração      | Uso atual                                                                                                                                                 | Condições                                                                                                                          |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Geoapify Places | Handler `/api/places` atende função Node compatível e Vite dev/preview; Address Autocomplete, normalização e seleção direta de resultado; fallback manual | Requer `GEOAPIFY_API_KEY` e `ALLOWED_ORIGIN` exata no servidor; segredo nunca vai ao cliente; limitação em memória é por instância |
-| Frankfurter    | Câmbio real                                                                                         | Sem chave; cache identificado no IndexedDB e taxa manual em gastos/compras                                                               |
-| Open-Meteo     | Clima de sete dias durante viagem                                                                   | Coordenadas salvas; cache; indisponibilidade explícita                                                                                   |
-| Mapas externos | Abrir navegação                                                                                     | Preferência local; não solicita GPS do aparelho                                                                                          |
-| Supabase       | Desativado                                                                                          | isLocal/isDemo verdadeiros, backendClient nulo; SDK/SQL históricos                                                                       |
-| OpenAI/agent   | Ausente no fluxo ativo                                                                              | Roteamento de modelos é regra de desenvolvimento, não função do aplicativo                                                               |
+| Frankfurter     | Câmbio real                                                                                                                                               | Sem chave; cache identificado no IndexedDB e taxa manual em gastos/compras                                                         |
+| Open-Meteo      | Clima de sete dias durante viagem                                                                                                                         | Coordenadas salvas; cache; indisponibilidade explícita                                                                             |
+| Mapas externos  | Abrir navegação                                                                                                                                           | Preferência local; não solicita GPS do aparelho                                                                                    |
+| Supabase        | Desativado                                                                                                                                                | isLocal/isDemo verdadeiros, backendClient nulo; SDK/SQL históricos                                                                 |
+| OpenAI/agent    | Ausente no fluxo ativo                                                                                                                                    | Roteamento de modelos é regra de desenvolvimento, não função do aplicativo                                                         |
 
-Vite dev/preview usa o handler server-side compartilhado com Vercel. Nenhuma chave
-Google ou ligação Vercel foi encontrada/configurada neste ambiente. A rota local
-foi exercitada e respondeu JSON 503 quando sem chave; chamada autenticada Google
-e Preview implantado continuam sem validação. Nenhuma chave foi adicionada.
+Vite dev/preview usa o handler server-side compartilhado com a função do host.
+Pesquisa Geoapify autenticada foi validada localmente sem expor a chave; Preview
+implantado e variáveis do host continuam sem validação nesta etapa.
 Condições de deployment constam no [README](../README.md); licenças de assets em
 [ASSETS](../ASSETS.md).
 
@@ -157,9 +187,9 @@ transação única entre localStorage e IndexedDB para alterações entre janela
 No fechamento de K01, K02–K08 continuavam pendentes; a rodada atual atualiza os
 itens K02/K04/K05/K07 descritos abaixo.
 
-## Estabilização em revisão — 06/10/2026
+## Estabilização incorporada ao checkpoint — 07/10/2026
 
-- **K04 corrigido no working tree:** abertura em cache só enquanto válida;
+- **K04 corrigido em `b4c8568`:** abertura em cache só enquanto válida;
   falhas limpam apenas a tentativa correspondente, concorrentes compartilham a
   abertura e conexão tardia após `blocked` é fechada. Sem limpar/recriar o banco.
 - **K02 parcialmente corrigido:** editor expõe data final, horário final, código e
@@ -169,12 +199,12 @@ itens K02/K04/K05/K07 descritos abaixo.
 - **K05 parcialmente corrigido:** Home recarrega fotos quando o evento local de
   mídia informa importação/edição/arquivamento. A contagem de favoritos ainda usa
   `memory.favorite`; o Álbum não oferece o mesmo modelo de favoritos.
-- **K07 em preparação técnica:** Vite dev/preview e função Node do host usam o
-  mesmo handler. Sem chave ou origem configurada, devolve JSON 503 e a UI oferece
-  fallback manual. Contrato, build e pacote de fonte estão verificados; pesquisa
-  Google real e limites/quota distribuídos dependem da configuração/deploy manual.
+- **K07 com Geoapify:** Vite dev/preview e função Node do host usam o mesmo
+  handler. Sem chave ou origem configurada, a UI oferece fallback manual.
+  Pesquisa real local foi validada; deploy e limites/quota distribuídos dependem
+  da configuração do host.
 
-Verificação desta rodada: `pnpm test` 71/71 em 12 arquivos; TypeScript principal,
+Verificação histórica dessa rodada: `pnpm test` 71/71 em 12 arquivos; TypeScript principal,
 checagem estrita separada de `api/places.ts`, `pnpm build` e `git diff --check`
 aprovados. Chrome temporário em 402 px criou viagem e confirmou mensagem de Places
 sem chave; salvou/reabriu reserva sintética com período, horário final, código e
@@ -182,15 +212,15 @@ status. Perfil isolado; nenhum dado pessoal.
 
 ## Problemas conhecidos (abertos)
 
-| ID  | Problema e evidência                                                                                                                                                                 | Impacto                                                                                              |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| K02 | Corrigidos controles/cópia dos campos e coordenadas; estadia ainda gera uma atividade apenas na data inicial e horário final em dia diferente não vira duração de roteiro            | Representação diária da hospedagem no roteiro permanece limitada                                     |
-| K03 | Editor ativo aceita período acima de 366 dias; daysOf corta em 366. Sondagem: 730 dias calculados, 366 navegáveis                                                                    | Parte do roteiro fica inacessível                                                                    |
-| K04 | Resolvido no working tree, ainda sem commit/aprovação                                                                                                                                | Regressão cobre falha transitória, chamadas concorrentes e recuperação                               |
-| K05 | Contagem de fotos atualiza após evento de mídia; favoritos ainda vêm de `memory.favorite`, legado sem equivalente no Álbum                                                           | Favoritos desconectados do álbum atual; requer decisão para consolidar                               |
-| K06 | Blobs são gravados antes de concluir formulário, sem limpeza correspondente ao cancelar/substituir/remover referência; cópias source/context                                         | Uso de quota por mídia sem referência ativa                                                          |
-| K07 | Integração Geoapify e chave server-side verificadas localmente; limite continua por IP/instância em memória, sem quota distribuída | Deploy e variáveis do host ainda aguardam ação manual do usuário; proteção de consumo não é distribuída |
-| K08 | Código legado/mocks junto ao ativo; forms/Operations com cerca de 1.200–1.400 linhas; sem teste de UI e migração V1 preenchida; endpoint fora do build tipado                        | Manutenção e cobertura insuficientes                                                                 |
+| ID  | Problema e evidência                                                                                                                                                      | Impacto                                                                                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| K02 | Corrigidos controles/cópia dos campos e coordenadas; estadia ainda gera uma atividade apenas na data inicial e horário final em dia diferente não vira duração de roteiro | Representação diária da hospedagem no roteiro permanece limitada                                        |
+| K03 | Editor ativo aceita período acima de 366 dias; daysOf corta em 366. Sondagem: 730 dias calculados, 366 navegáveis                                                         | Parte do roteiro fica inacessível                                                                       |
+| K04 | Resolvido e versionado no checkpoint `b4c8568`                                                                                                                            | Regressão cobre falha transitória, chamadas concorrentes e recuperação                                  |
+| K05 | Contagem de fotos atualiza após evento de mídia; favoritos ainda vêm de `memory.favorite`, legado sem equivalente no Álbum                                                | Favoritos desconectados do álbum atual; requer decisão para consolidar                                  |
+| K06 | Blobs são gravados antes de concluir formulário, sem limpeza correspondente ao cancelar/substituir/remover referência; cópias source/context                              | Uso de quota por mídia sem referência ativa                                                             |
+| K07 | Integração Geoapify e chave server-side verificadas localmente; limite continua por IP/instância em memória, sem quota distribuída                                        | Deploy e variáveis do host ainda aguardam ação manual do usuário; proteção de consumo não é distribuída |
+| K08 | Código legado/mocks junto ao ativo; forms/Operations com cerca de 1.200–1.400 linhas; sem teste de UI e migração V1 preenchida; endpoint fora do build tipado             | Manutenção e cobertura insuficientes                                                                    |
 
 Limitações documentadas (não bugs novos): ausência de backup, sincronização,
 criptografia dos blobs e certificação física. HEIC depende do navegador; fotos
@@ -202,8 +232,8 @@ de fotos até 30 MB. Não foram encontrados TODO/FIXME/HACK/XXX na auditoria.
 Próximas prioridades e critérios em [ROADMAP](ROADMAP.md). Decisões confirmadas em
 [DECISIONS](DECISIONS.md). Questões excepcionais em [ASTRA_QUEUE](ASTRA_QUEUE.md),
 sem tarefas. K01 permanece concluído e aprovado. K04 e partes de K02/K05/K07
-estão corrigidas no working tree desta rodada e aguardam revisão; não criar commit
-antes da aprovação do usuário.
+estão no checkpoint `b4c8568`. O bloco visual V1.2 está em revisão no working
+tree, sem commit.
 
 ## Handoff externo de UX/UI
 

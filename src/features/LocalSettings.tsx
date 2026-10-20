@@ -121,7 +121,7 @@ export function SettingsContent() {
       </section>
       <p>
         Dados e anexos armazenados neste dispositivo. Limpar os dados do
-        navegador também remove os dados do Travel OS.
+        navegador também remove os dados do Foravento.
       </p>
     </>
   );

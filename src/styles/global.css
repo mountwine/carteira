@@ -31,8 +31,8 @@ a {
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
-  outline: 3px solid var(--color-gold);
-  outline-offset: 4px;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 h1,
 h2,

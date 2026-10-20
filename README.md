@@ -1,6 +1,6 @@
-# Travel OS — V1.1
+# Foravento — V1.2 em implantação
 
-Aplicativo pessoal de viagens, local-only, atualizado sobre a V1 existente. React 19, TypeScript, Vite e PWA. Interface Dark com Manrope local, Deep Navy, Electric Blue e tokens centralizados. Não existe conexão ativa com Supabase, OpenAI, Agent, tradução ou colaboração online.
+Aplicativo pessoal de viagens sobre a base funcional Travel OS V1.1. A interface V1.2 começou pelo cabeçalho, navegação global e Minhas Viagens; as demais telas seguem em atualização. React 19, TypeScript, Vite e PWA. Interface somente escura, com Archivo e Manrope locais e tokens da Rodada 04. Não existe conexão ativa com Supabase, OpenAI, Agent, tradução ou colaboração online.
 
 ## Executar e testar
 
@@ -26,7 +26,7 @@ Para iPhone/Android instalado, utilize um endereço HTTPS estável. No Safari: C
 
 - Navegação: Início, Roteiro, +, Álbum, Mais. O + abre quatro ações; não é uma página.
 - Histórico contextual com nome da origem, retorno nativo, estado de telas mantido e restauração de scroll quando possível.
-- Minhas viagens compacta, ordenada por fase; criação/edição com origem, destinos, datas, viajantes e capa opcional reposicionável.
+- Minhas viagens em cards horizontais por fase, com capa opcional, datas, quantidade de viajantes e estado da viagem; criação/edição preserva origem, destinos, datas e capa reposicionável.
 - Início automático: preparação com checklist/bagagem inline; durante com próxima atividade, previsão, gastos e reservas do dia; depois com retrospectiva e compras.
 - Roteiro apenas timeline, sempre ordenado por data e horário; novos registros exigem nome, dia, horário e local.
 - Places compartilhado entre viagem, atividade e reserva, com fallback manual explícito.
@@ -70,11 +70,11 @@ fornece esse endpoint. O mesmo handler é exercitado pelo middleware Vite dev/
 preview. Sem configuração ou conexão, os campos continuam aceitando locais
 manualmente. Nenhuma variável secreta usa o prefixo `VITE_`.
 
-| Variável | Obrigatória? | Finalidade | Onde configurar | Exemplo seguro |
-| --- | --- | --- | --- | --- |
-| `GEOAPIFY_API_KEY` | Sim para busca online | Chave do Geoapify Address Autocomplete, usada somente pelo servidor | Ambiente server-side do host e, para teste local, `.env.local` | Valor secreto criado em Geoapify MyProjects; não use um valor de exemplo em produção |
-| `ALLOWED_ORIGIN` | Sim para busca online | Autoriza exatamente a origem que carrega o app e configura CORS | Ambiente server-side do host e, para teste local, `.env.local` | `https://foravento.example` |
-| `VITE_PLACES_ENDPOINT` | Não | Sobrescreve o endpoint interno padrão. Deixe vazio para usar `/api/places` na mesma origem | Ambiente de build; é pública e não pode conter segredo | vazio; ou endpoint próprio com CORS configurado |
+| Variável               | Obrigatória?          | Finalidade                                                                                 | Onde configurar                                                | Exemplo seguro                                                                       |
+| ---------------------- | --------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `GEOAPIFY_API_KEY`     | Sim para busca online | Chave do Geoapify Address Autocomplete, usada somente pelo servidor                        | Ambiente server-side do host e, para teste local, `.env.local` | Valor secreto criado em Geoapify MyProjects; não use um valor de exemplo em produção |
+| `ALLOWED_ORIGIN`       | Sim para busca online | Autoriza exatamente a origem que carrega o app e configura CORS                            | Ambiente server-side do host e, para teste local, `.env.local` | `https://foravento.example`                                                          |
+| `VITE_PLACES_ENDPOINT` | Não                   | Sobrescreve o endpoint interno padrão. Deixe vazio para usar `/api/places` na mesma origem | Ambiente de build; é pública e não pode conter segredo         | vazio; ou endpoint próprio com CORS configurado                                      |
 
 `ALLOWED_ORIGIN` deve ser a origem final exibida na barra do navegador, contendo
 esquema (`https://`) e domínio, sem caminho, query, fragmento ou barra final. Por

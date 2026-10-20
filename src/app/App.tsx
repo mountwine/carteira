@@ -22,8 +22,6 @@ import {
   SettingsContent,
 } from "../features/LocalSettings";
 import { importPhoto } from "../data/media";
-import "../styles/modules.css";
-import "../styles/v11.css";
 const rootEntry = (screen = "Hoje"): NavigationEntry => ({
   id: crypto.randomUUID(),
   screen,
@@ -192,7 +190,7 @@ export function App() {
   if (!ready)
     return (
       <div className="center-state" role="status">
-        Abrindo Travel OS…
+        Abrindo Foravento…
       </div>
     );
   return (
@@ -222,24 +220,11 @@ export function App() {
       ) : (
         <>
           <header className="app-header">
-            <button
-              className="header-trip"
-              disabled={!trip}
-              onClick={() => setMenu("trips")}
-            >
-              {trip ? (
-                <>
-                  {trip.name}
-                  <ChevronDown size={16} />
-                </>
-              ) : null}
-            </button>
-            <div className="header-actions">
-              {trip && (
-                <button aria-label="Busca" onClick={() => navigate("Busca")}>
-                  <Search size={20} />
-                </button>
-              )}
+            <div className="header-main">
+              <div className="header-brand" aria-label="Foravento">
+                <img src="/foravento-mark.png" alt="" width="36" height="36" />
+                <span>Foravento</span>
+              </div>
               <button
                 className="avatar"
                 aria-label="Abrir menu da conta"
@@ -248,6 +233,21 @@ export function App() {
                 {user.name.charAt(0)}
               </button>
             </div>
+            {trip && (
+              <div className="header-context">
+                <button className="header-trip" onClick={() => setMenu("trips")}>
+                  <span>{trip.name}</span>
+                  <ChevronDown size={16} />
+                </button>
+                <button
+                  className="header-search"
+                  aria-label="Busca"
+                  onClick={() => navigate("Busca")}
+                >
+                  <Search size={20} />
+                </button>
+              </div>
+            )}
           </header>
           {!trip ? (
             <>

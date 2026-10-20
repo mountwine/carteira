@@ -8,7 +8,10 @@ export function Auth() {
     [recovery, setRecovery] = useState("");
   return (
     <main className="local-login">
-      <h1>Travel OS</h1>
+      <div className="login-brand">
+        <img src="/foravento-mark.png" alt="" width="48" height="48" />
+        <h1>Foravento</h1>
+      </div>
       <form
         onSubmit={async (e) => {
           e.preventDefault();

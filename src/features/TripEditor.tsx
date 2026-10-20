@@ -127,7 +127,7 @@ export function TripEditor({
       onClose={onClose}
     >
       <form
-        className="record-form"
+        className="record-form trip-editor-form"
         onChange={touch}
         onSubmit={(e) => {
           e.preventDefault();

@@ -23,7 +23,7 @@ export function database() {
       settled = true;
       reject(
         new Error(
-          "Feche outras janelas do Travel OS para atualizar o armazenamento. Seus dados foram preservados.",
+          "Feche outras janelas do Foravento para atualizar o armazenamento. Seus dados foram preservados.",
         ),
       );
     };

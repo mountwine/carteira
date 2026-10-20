@@ -5,6 +5,11 @@
 **Escopo:** descrever o produto atual para avaliação externa, sem propor redesign,
 implementar identidade visual ou iniciar K04. Não inclui dados pessoais ou credenciais.
 
+**Atualização de decisão — 20/10/2026:** este handoff conserva o retrato histórico
+de 06/10. A permanência planejada do Tradutor mencionada abaixo foi substituída
+por D021: Tradutor está fora do escopo V1.2; Viajantes permanece. Consulte
+[decisões atuais](../DECISIONS.md) e [estado atual](../PROJECT_STATE.md).
+
 O produto passa a se chamar **Foravento** por decisão aprovada. A interface e os
 artefatos instaláveis atuais ainda usam **Travel OS**; a troca pertence à V1.2.
 Este documento descreve código e documentação, sem nova inspeção de interface nesta

@@ -3,6 +3,9 @@ import { createRoot } from "react-dom/client";
 import { App } from "./app/App";
 import "./styles/tokens.css";
 import "./styles/global.css";
+import "./styles/modules.css";
+import "./styles/v11.css";
+import "./styles/v12.css";
 class ErrorBoundary extends Component<
   { children: ReactNode },
   { failed: boolean }
@@ -12,7 +15,7 @@ class ErrorBoundary extends Component<
     return { failed: true };
   }
   componentDidCatch() {
-    console.error("Travel OS: falha ao renderizar a interface.");
+    console.error("Foravento: falha ao renderizar a interface.");
   }
   render() {
     return this.state.failed ? (

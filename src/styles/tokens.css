@@ -4,21 +4,39 @@
   font-weight: 400 800;
   font-display: swap;
 }
+@font-face {
+  font-family: Archivo;
+  src: url("/archivo.ttf") format("truetype");
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+}
 :root {
-  --color-bg: #061321;
-  --color-surface: #0d2033;
-  --color-surface-raised: #132b43;
-  --color-text: #f5f8ff;
-  --color-muted: #a9bdd3;
-  --color-border: #294259;
-  --color-primary: #168bff;
-  --color-primary-strong: #0070ed;
-  --color-primary-text: #fff;
-  --color-gold: #ffc655;
-  --color-success: #23d5ad;
+  --color-bg: #061923;
+  --color-surface: #102734;
+  --color-surface-raised: #173342;
+  --color-text: #f4f6fa;
+  --color-muted: #b0c0cf;
+  --color-text-muted: #90a3b5;
+  --color-border: #273d4d;
+  --color-border-control: #637d94;
+  --color-primary: #315ccb;
+  --color-primary-strong: #315ccb;
+  --color-primary-hover: #3767d8;
+  --color-primary-pressed: #244aa7;
+  --color-primary-text: #f4f6fa;
+  --color-link-selected: #6799f0;
+  --color-focus: #a7d8f2;
+  --color-accent-support: #91cfd4;
+  --color-selection-bg: #172642;
+  --color-gold: #f1c27d;
+  --color-success: #83d5ad;
   --font-family: Manrope, system-ui, sans-serif;
-  --radius-card: 20px;
-  --radius-control: 14px;
+  --font-display: Archivo, Manrope, system-ui, sans-serif;
+  --radius-card: 12px;
+  --radius-control: 10px;
+  --radius-photo: 8px;
+  --radius-sheet: 20px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -27,30 +45,8 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-10: 40px;
-  --shadow-card: 0 8px 28px #00000018;
-  --motion-fast: 160ms;
+  --shadow-card: none;
+  --motion-fast: 120ms;
   --content-width: 1040px;
   color-scheme: dark;
-}
-/* Tema selecionado no Perfil. Automático acompanha a preferência do aparelho. */
-:root[data-theme="light"] {
-  --color-bg: #f3f7fc;
-  --color-surface: #fff;
-  --color-surface-raised: #eaf1fa;
-  --color-text: #102338;
-  --color-muted: #486078;
-  --color-border: #ccdaea;
-  --shadow-card: 0 8px 28px #163c6210;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: light) {
-  :root[data-theme="auto"] {
-    --color-bg: #f3f7fc;
-    --color-surface: #fff;
-    --color-surface-raised: #eaf1fa;
-    --color-text: #102338;
-    --color-muted: #486078;
-    --color-border: #ccdaea;
-    color-scheme: light;
-  }
 }

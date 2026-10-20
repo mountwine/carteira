@@ -1,0 +1,410 @@
+/* Direção B, Rodada 04: shell global e Minhas Viagens. */
+.app-header {
+  height: auto;
+  min-height: 70px;
+  padding: 10px 18px;
+  display: grid;
+  justify-content: stretch;
+  align-items: stretch;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.header-main,
+.header-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.header-brand,
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--color-text);
+}
+
+.header-brand img,
+.login-brand img {
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.header-brand span {
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: -0.4px;
+  font-weight: 800;
+}
+
+.app-header .avatar {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border: 1px solid var(--color-border-control);
+  border-radius: 50%;
+  padding: 0;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.header-trip {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  min-height: 44px;
+  padding: 0 12px;
+  justify-content: flex-start;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  text-align: left;
+}
+
+.header-trip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-search {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.login-brand img {
+  width: 48px;
+  height: 48px;
+}
+
+.login-brand h1 {
+  font-size: clamp(26px, 8vw, 32px);
+  letter-spacing: -1px;
+}
+
+.bottom-nav {
+  width: min(100%, var(--content-width));
+  height: calc(76px + env(safe-area-inset-bottom));
+  min-height: 0;
+  padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+  gap: 2px;
+  border-top: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-bg);
+}
+
+.bottom-nav button {
+  min-width: 0;
+  min-height: 54px;
+  padding: 2px;
+  border-radius: var(--radius-control);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.bottom-nav button span {
+  height: 28px;
+}
+
+.bottom-nav button.active {
+  color: var(--color-link-selected);
+}
+
+.bottom-nav button.active:not(.quick-tab) span {
+  border-radius: 9px;
+  background: var(--color-selection-bg);
+}
+
+.bottom-nav .quick-tab > span {
+  width: 52px;
+  height: 52px;
+  margin-top: 0;
+  transform: translateY(-7px);
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  box-shadow: none;
+}
+
+/* Viagens são uma lista operacional; cada ação mantém seu próprio alvo de toque. */
+.trip-list.module-page {
+  max-width: 760px;
+  padding: 26px 16px 120px;
+  gap: 0;
+}
+.trip-list .module-heading {
+  display: block;
+  margin: 8px 0 22px;
+}
+.trip-list .module-heading h1 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 36px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.trip-count {
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.trip-list-actions {
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.trip-list-actions .button {
+  width: 100%;
+  min-height: 48px;
+  background: var(--color-primary);
+  border: 1px solid var(--color-border-control);
+  box-shadow: none;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+}
+.trip-list-actions .button:hover {
+  background: var(--color-primary-hover);
+  filter: none;
+}
+.trip-list-actions .text-button {
+  min-height: 48px;
+  color: var(--color-link-selected);
+  font-size: 14px;
+  font-weight: 600;
+}
+.trip-group {
+  margin-bottom: 28px;
+}
+.trip-list .trip-group > h2.eyebrow {
+  margin: 0 0 8px;
+  color: var(--color-muted);
+  font-family: var(--font-family);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.trip-cards {
+  display: grid;
+  gap: 12px;
+  max-width: 520px;
+}
+.trip-list .trip-card {
+  display: flex;
+  align-items: stretch;
+  height: auto;
+  min-height: 112px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: none;
+  overflow: hidden;
+}
+.trip-list .trip-open {
+  flex: 1;
+  min-width: 0;
+  min-height: 96px;
+  padding: 0;
+  gap: 10px;
+  border-radius: var(--radius-photo);
+}
+.trip-list .trip-thumb {
+  width: 86px;
+  min-height: 92px;
+  height: auto;
+  display: grid;
+  place-items: center;
+  flex: 0 0 86px;
+  align-self: stretch;
+  border-radius: var(--radius-photo);
+  background: var(--color-surface-raised);
+  color: var(--color-accent-support);
+}
+.trip-list .trip-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.trip-summary {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  text-align: left;
+}
+.trip-name {
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.trip-dates,
+.trip-members {
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.trip-members {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-muted);
+}
+.trip-list .trip-status {
+  align-self: flex-start;
+  max-width: none;
+  margin-top: 3px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--color-selection-bg);
+  color: var(--color-link-selected);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+  text-align: left;
+}
+.trip-list .trip-edit {
+  position: static;
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  min-height: 48px;
+  margin-left: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-muted);
+}
+.trip-list .trip-edit:hover,
+.trip-list .trip-open:hover {
+  background: var(--color-surface-raised);
+}
+.trip-list .empty-state {
+  padding: 40px 20px;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.trip-list .empty-state h2 {
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 28px;
+}
+.trip-list .empty-state p {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* O editor reutiliza a persistência existente e recebe apenas controles da V1.2. */
+.sheet:has(.trip-editor-form) {
+  border-radius: var(--radius-sheet);
+  background: var(--color-bg);
+}
+.sheet:has(.trip-editor-form) .sheet-inner header {
+  background: var(--color-bg);
+}
+.sheet:has(.trip-editor-form) .sheet-inner header h2,
+.trip-editor-form section > h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+}
+.trip-editor-form label {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.trip-editor-form input,
+.trip-editor-form select {
+  min-height: 48px;
+  border-color: var(--color-border-control);
+  background: var(--color-surface);
+}
+.trip-editor-form .destination-field {
+  border-color: var(--color-border);
+  background: transparent;
+  box-shadow: none;
+}
+.trip-editor-form .action-row button,
+.trip-editor-form .text-button {
+  min-height: 48px;
+}
+.trip-editor-form .action-row button:disabled {
+  color: var(--color-text-muted);
+  opacity: 1;
+  cursor: not-allowed;
+}
+.trip-editor-form .button.primary {
+  background: var(--color-primary);
+  border-color: var(--color-border-control);
+  box-shadow: none;
+  font-size: 14px;
+}
+.trip-editor-form .button.primary:disabled {
+  background: var(--color-surface-raised);
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+@media (min-width: 400px) {
+  .trip-list.module-page {
+    padding-inline: 20px;
+  }
+}
+@media (min-width: 440px) {
+  .trip-list.module-page {
+    padding-inline: 24px;
+  }
+}
+@media (max-width: 390px) {
+  .trip-list .trip-thumb {
+    width: 78px;
+    flex-basis: 78px;
+  }
+}
+
+@media (min-width: 700px) {
+  .app-header {
+    padding-inline: 40px;
+  }
+}
