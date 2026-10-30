@@ -4,6 +4,9 @@ import { Page, Modal } from "../components/forms";
 import type { User } from "../domain/models";
 import { all, put } from "../data/database";
 import { localAuth, accountConfigured, updateAccount } from "../adapters/local";
+import { emailAuth } from "../adapters";
+import { TripCodeCard } from "./TripCodeCard";
+import type { SyncStatus } from "../data/cloudSync";
 import { persistTrip } from "../adapters/local";
 export type NavigationApp = "ask" | "apple" | "google" | "waze";
 export const navigationPreference = () =>
@@ -133,7 +136,95 @@ export function LocalSettings() {
     </Page>
   );
 }
-export function AccountContent({ user }: { user: User }) {
+function syncLabel(sync: SyncStatus) {
+  switch (sync.state) {
+    case "syncing":
+      return "Sincronizando…";
+    case "offline":
+      return "Sem conexão. Suas mudanças serão enviadas quando voltar a internet.";
+    case "error":
+      return `Não foi possível sincronizar: ${sync.message}`;
+    case "ok":
+      return `Sincronizado às ${new Date(sync.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}.`;
+    default:
+      return "Aguardando a primeira sincronização.";
+  }
+}
+function OnlineAccountContent({
+  user,
+  sync,
+  onSyncNow,
+}: {
+  user: User;
+  sync?: SyncStatus;
+  onSyncNow?: () => void;
+}) {
+  const [name, setName] = useState(user.name),
+    [message, setMessage] = useState(""),
+    [busy, setBusy] = useState(false);
+  return (
+    <form
+      className="record-form"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setBusy(true);
+        try {
+          await emailAuth?.updateName(name);
+          setMessage("Nome atualizado.");
+        } catch (err) {
+          setMessage((err as Error).message);
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <label>
+        Nome
+        <input
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </label>
+      <label>
+        E-mail
+        <input readOnly value={user.email} />
+      </label>
+      <p>O acesso é por um código enviado ao seu e-mail. Não há senha.</p>
+      {sync && <p role="status">{syncLabel(sync)}</p>}
+      {onSyncNow && (
+        <button
+          type="button"
+          className="button secondary"
+          disabled={sync?.state === "syncing"}
+          onClick={onSyncNow}
+        >
+          Sincronizar agora
+        </button>
+      )}
+      {message && <p role="status">{message}</p>}
+      <button className="button primary" disabled={busy}>
+        Salvar nome
+      </button>
+    </form>
+  );
+}
+export function AccountContent({
+  user,
+  sync,
+  onSyncNow,
+}: {
+  user: User;
+  sync?: SyncStatus;
+  onSyncNow?: () => void;
+}) {
+  return emailAuth ? (
+    <OnlineAccountContent user={user} sync={sync} onSyncNow={onSyncNow} />
+  ) : (
+    <LocalAccountContent user={user} />
+  );
+}
+function LocalAccountContent({ user }: { user: User }) {
   const [name, setName] = useState(user.name),
     [email, setEmail] = useState(user.email),
     [password, setPassword] = useState(""),
@@ -302,11 +393,12 @@ export function LocalTravelers({ refresh }: { refresh: () => Promise<void> }) {
             </span>
             <span className="traveler-summary">
               <strong>{m.displayName}</strong>
-              <small>Registro local</small>
+              <small>{emailAuth ? "Participante" : "Registro local"}</small>
             </span>
           </li>
         ))}
       </ul>
+      <TripCodeCard refresh={refresh} />
       <button className="button primary" onClick={() => setAdding(true)}>
         + Adicionar viajante
       </button>

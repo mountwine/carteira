@@ -1,7 +1,12 @@
 import { useState } from "react";
-import { services } from "../adapters";
-import { resetPassword } from "../adapters/local";
+import { emailAuth } from "../adapters";
+import { cloudConfigError } from "../adapters/cloud";
+import { localAuth, resetPassword } from "../adapters/local";
+import { CodeLogin } from "./CodeLogin";
 export function Auth() {
+  return emailAuth ? <CodeLogin auth={emailAuth} /> : <LocalLogin />;
+}
+function LocalLogin() {
   const [mode, setMode] = useState<"login" | "signup" | "reset">("login"),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -26,7 +31,7 @@ export function Auth() {
           const f = new FormData(e.currentTarget);
           try {
             if (mode === "signup") {
-              const code = await services.auth.signup(
+              const code = await localAuth.signup(
                 String(f.get("name")),
                 String(f.get("email")),
                 String(f.get("password")),
@@ -41,7 +46,7 @@ export function Auth() {
               setMode("login");
               setError("Senha atualizada neste dispositivo.");
             } else
-              await services.auth.login(
+              await localAuth.login(
                 String(f.get("email")),
                 String(f.get("password")),
               );
@@ -112,6 +117,7 @@ export function Auth() {
       >
         {mode === "signup" ? "Entrar" : "Criar conta"}
       </button>
+      {cloudConfigError && <p role="alert">{cloudConfigError}</p>}
       <p className="muted">Conta e dados salvos somente neste dispositivo.</p>
     </main>
   );
