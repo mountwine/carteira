@@ -1,5 +1,5 @@
 import { useTravel } from "../data/TravelContext";
-import type { Entity } from "../domain/entities";
+import { dateLabel, type Entity } from "../domain/entities";
 import { homeHeadline } from "../domain/homeHeadline";
 import type { HomeContext, Trip } from "../domain/models";
 import { NavigateButton } from "./LocalSettings";
@@ -8,6 +8,14 @@ const shortDate = (date: string) =>
   new Date(date + "T12:00:00")
     .toLocaleDateString("pt-BR", { day: "numeric", month: "short" })
     .replace(".", "");
+function whenLabel(date: string, today: string) {
+  if (date === today) return "HORA";
+  const tomorrow = new Date(today + "T12:00:00Z");
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  return date === tomorrow.toISOString().slice(0, 10)
+    ? "AMANHÃ"
+    : dateLabel(date).replace(".", "").toUpperCase();
+}
 const cityDays = (start: string, end: string) =>
   start === end ? shortDate(start) : `${shortDate(start)} – ${shortDate(end)}`;
 
@@ -61,8 +69,8 @@ export function TripPass({
                 {next.data.address && <em>{next.data.address}</em>}
               </span>
               <span className="pass-time">
-                <small>HORA</small>
-                <strong>{next.data.time}</strong>
+                <small>{whenLabel(next.data.date, ctx.date)}</small>
+                <strong>{next.data.time || "A definir"}</strong>
               </span>
             </button>
           ) : ctx.phase === "during" ? (

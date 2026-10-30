@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTravel } from "../data/TravelContext";
 import { homeContext } from "../domain/models";
 import { ofKind, change, money, type Entity } from "../domain/entities";
-import { checklistForPhase, ordered } from "../domain/planning";
+import { checklistForPhase, nextActivity, ordered } from "../domain/planning";
 import { TripPass } from "./TripPass";
 import { ProgressBar } from "../components/local";
 import { RecordEditor, RecordActions, Page, Modal } from "../components/forms";
@@ -255,7 +255,7 @@ export function LocalHome() {
       <TripPass
         trip={t.trip}
         ctx={ctx}
-        next={next}
+        next={nextActivity(ofKind(t.records, "activity"), ctx.date, time)}
         doneCount={
           ofKind(t.records, "activity").filter((a) => a.data.status === "done")
             .length
