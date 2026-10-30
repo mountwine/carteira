@@ -352,6 +352,17 @@ button:disabled {
   letter-spacing: 0.1em;
 }
 .pass-body {
+  --notch: 12px;
+  -webkit-mask:
+    radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) left / 51%
+      100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) right /
+      51% 100% no-repeat;
+  mask:
+    radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) left / 51%
+      100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) right /
+      51% 100% no-repeat;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -468,29 +479,19 @@ button:disabled {
   min-height: 44px;
   padding: 0 16px;
 }
-.pass-cut {
-  position: relative;
-  height: 0;
-  border-top: 2px dashed #b9d3ee;
-  background: #fff;
-}
-.pass-cut::before,
-.pass-cut::after {
-  content: "";
-  position: absolute;
-  top: -12px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #eaf3fc;
-}
-.pass-cut::before {
-  left: -11px;
-}
-.pass-cut::after {
-  right: -11px;
-}
 .pass-stub {
+  --notch: 12px;
+  position: relative;
+  -webkit-mask:
+    radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left / 51% 100%
+      no-repeat,
+    radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) right / 51%
+      100% no-repeat;
+  mask:
+    radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left / 51% 100%
+      no-repeat,
+    radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) right / 51%
+      100% no-repeat;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -498,6 +499,14 @@ button:disabled {
   padding: 16px 18px 18px;
   border-radius: 0 0 26px 26px;
   background: #fff;
+}
+.pass-stub::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  border-top: 2px dashed #b9d3ee;
 }
 .pass-stub > span:first-child {
   display: flex;

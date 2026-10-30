@@ -146,7 +146,6 @@ export function TripPass({
             </div>
           )}
         </div>
-        <div className="pass-cut" aria-hidden="true" />
         <div className="pass-stub">
           <span>
             <small>VIAGEM</small>
