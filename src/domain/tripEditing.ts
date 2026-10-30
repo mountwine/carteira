@@ -15,6 +15,77 @@ export function newDestination(
   };
 }
 
+const DAY_MS = 86400000;
+const dayIndex = (date: string) => Date.parse(date + "T00:00:00Z") / DAY_MS;
+export function shiftDate(date: string, days: number) {
+  return new Date((dayIndex(date) + days) * DAY_MS).toISOString().slice(0, 10);
+}
+
+/** Cities may share the day of the change; they cannot otherwise overlap. */
+export function destinationScheduleError(
+  destinations: Destination[],
+  tripStart: string,
+  tripEnd: string,
+): string | null {
+  if (destinations.length < 2) return null;
+  if (destinations.some((d) => !d.startDate || !d.endDate))
+    return "Informe a chegada e a saída de cada cidade.";
+  if (destinations.some((d) => d.endDate < d.startDate))
+    return "A saída de uma cidade não pode ser antes da chegada.";
+  if (destinations.some((d) => d.startDate < tripStart || d.endDate > tripEnd))
+    return "Os dias de cada cidade precisam estar dentro do período da viagem.";
+  const sorted = [...destinations].sort(
+    (a, b) =>
+      a.startDate.localeCompare(b.startDate) ||
+      a.endDate.localeCompare(b.endDate),
+  );
+  for (let i = 1; i < sorted.length; i++)
+    if (sorted[i].startDate < sorted[i - 1].endDate)
+      return "As cidades não podem se sobrepor. O dia da troca pode ser o mesmo.";
+  return null;
+}
+
+/** Adds a city after the others, splitting the last one if it reaches the end of the trip. */
+export function addDestinationWithDates(
+  destinations: Destination[],
+  tripStart: string,
+  tripEnd: string,
+): Destination[] {
+  const fresh = newDestination("", "");
+  if (!tripStart || !tripEnd || !destinations.length)
+    return [...destinations, fresh];
+  const last = destinations.reduce((a, b) =>
+    (b.endDate || tripEnd) >= (a.endDate || tripEnd) ? b : a,
+  );
+  const from = last.startDate || tripStart,
+    to = last.endDate || tripEnd;
+  if (to >= tripEnd) {
+    const mid = shiftDate(
+      from,
+      Math.floor((dayIndex(to) - dayIndex(from)) / 2),
+    );
+    return [
+      ...destinations.map((d) =>
+        d.id === last.id ? { ...d, startDate: from, endDate: mid } : d,
+      ),
+      {
+        ...fresh,
+        startDate: mid < to ? shiftDate(mid, 1) : mid,
+        endDate: tripEnd,
+      },
+    ];
+  }
+  const start = shiftDate(to, 1);
+  return [
+    ...destinations,
+    {
+      ...fresh,
+      startDate: start <= tripEnd ? start : tripEnd,
+      endDate: tripEnd,
+    },
+  ];
+}
+
 export function newTraveler(
   displayName = "",
   userId: string = crypto.randomUUID(),

@@ -97,8 +97,8 @@ export default defineConfig(({ mode }) => {
           start_url: "/",
           scope: "/",
           display: "standalone",
-          background_color: "#061923",
-          theme_color: "#061923",
+          background_color: "#dcecfb",
+          theme_color: "#dcecfb",
           icons: [
             {
               src: "/icon-192.png",

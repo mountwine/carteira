@@ -19,6 +19,8 @@ import { all } from "../data/database";
 import type { AnyEntity, Pending } from "../domain/entities";
 import {
   buildEditedTrip,
+  addDestinationWithDates,
+  destinationScheduleError,
   newDestination,
   newTraveler,
 } from "../domain/tripEditing";
@@ -51,6 +53,7 @@ export function TripEditor({
     [busy, setBusy] = useState(false),
     [dirty, setDirty] = useState(false),
     [deleting, setDeleting] = useState(false);
+  const scheduleError = destinationScheduleError(destinations, start, end);
   const valid = !!(
     name.trim() &&
     origin.name.trim() &&
@@ -59,6 +62,7 @@ export function TripEditor({
     end >= start &&
     destinations.length &&
     destinations.every((d) => d.city.trim()) &&
+    !scheduleError &&
     members.every((m) => m.displayName.trim())
   );
   function touch() {
@@ -171,6 +175,34 @@ export function TripEditor({
                 touch();
               }}
             />
+            {destinations.length > 1 && (
+              <div className="destination-dates">
+                <DatePicker
+                  label="Chegada"
+                  value={p.startDate}
+                  min={start}
+                  max={end}
+                  onChange={(startDate) => {
+                    setDestinations((ds) =>
+                      ds.map((d) => (d.id === p.id ? { ...d, startDate } : d)),
+                    );
+                    touch();
+                  }}
+                />
+                <DatePicker
+                  label="Saída"
+                  value={p.endDate}
+                  min={p.startDate || start}
+                  max={end}
+                  onChange={(endDate) => {
+                    setDestinations((ds) =>
+                      ds.map((d) => (d.id === p.id ? { ...d, endDate } : d)),
+                    );
+                    touch();
+                  }}
+                />
+              </div>
+            )}
             <div className="action-row">
               <button
                 type="button"
@@ -204,7 +236,12 @@ export function TripEditor({
                 <button
                   type="button"
                   onClick={() => {
-                    setDestinations((ds) => ds.filter((_, n) => n !== i));
+                    setDestinations((ds) => {
+                      const rest = ds.filter((_, n) => n !== i);
+                      return rest.length === 1
+                        ? [{ ...rest[0], startDate: "", endDate: "" }]
+                        : rest;
+                    });
                     touch();
                   }}
                 >
@@ -218,12 +255,17 @@ export function TripEditor({
           type="button"
           className="text-button"
           onClick={() => {
-            setDestinations([...destinations, newDestination(start, end)]);
+            setDestinations(addDestinationWithDates(destinations, start, end));
             touch();
           }}
         >
           + Adicionar destino
         </button>
+        {scheduleError && (
+          <p className="form-error" role="alert">
+            {scheduleError}
+          </p>
+        )}
         <DatePicker label="Início" value={start} onChange={setStart} />
         <DatePicker label="Fim" value={end} min={start} onChange={setEnd} />
         <CurrencySelector value={currency} onChange={setCurrency} />

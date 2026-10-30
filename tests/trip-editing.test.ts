@@ -7,7 +7,9 @@ import { all, put } from "../src/data/database";
 import type { AnyEntity } from "../src/domain/entities";
 import type { Trip } from "../src/domain/models";
 import {
+  addDestinationWithDates,
   buildEditedTrip,
+  destinationScheduleError,
   newDestination,
   newTraveler,
 } from "../src/domain/tripEditing";
@@ -267,4 +269,83 @@ it("edição desatualizada não sobrescreve os dados salvos por outra janela", a
     persistTrip(edit(b, { members: [...b.members].reverse() })),
   ).toThrow("outra janela");
   expect(storage.get("travel-os:trips:v1")).toBe(snapshot);
+});
+
+const city = (id: string, startDate: string, endDate: string) => ({
+  ...newDestination(startDate, endDate),
+  id,
+  city: id,
+});
+it("divide a última cidade ao acrescentar outra e cobre a viagem inteira", () => {
+  const next = addDestinationWithDates(
+    [city("a", "2027-01-01", "2027-01-10")],
+    "2027-01-01",
+    "2027-01-10",
+  );
+  expect(next.map((d) => [d.startDate, d.endDate])).toEqual([
+    ["2027-01-01", "2027-01-05"],
+    ["2027-01-06", "2027-01-10"],
+  ]);
+  expect(destinationScheduleError(next, "2027-01-01", "2027-01-10")).toBeNull();
+});
+it("acrescenta a cidade depois da última quando ainda sobram dias", () => {
+  const next = addDestinationWithDates(
+    [city("a", "2027-01-01", "2027-01-04")],
+    "2027-01-01",
+    "2027-01-10",
+  );
+  expect([next[1].startDate, next[1].endDate]).toEqual([
+    "2027-01-05",
+    "2027-01-10",
+  ]);
+});
+it("sem datas da viagem, a nova cidade nasce sem datas", () => {
+  const next = addDestinationWithDates([newDestination("", "")], "", "");
+  expect(next[1]).toMatchObject({ startDate: "", endDate: "" });
+});
+it("valida chegada/saída, limites e sobreposição, aceitando o dia da troca", () => {
+  const range = ["2027-01-01", "2027-01-10"] as const;
+  expect(destinationScheduleError([city("a", "", "")], ...range)).toBeNull();
+  expect(
+    destinationScheduleError(
+      [city("a", "2027-01-01", "2027-01-05"), city("b", "", "")],
+      ...range,
+    ),
+  ).toMatch(/Informe/);
+  expect(
+    destinationScheduleError(
+      [
+        city("a", "2027-01-06", "2027-01-05"),
+        city("b", "2027-01-06", "2027-01-10"),
+      ],
+      ...range,
+    ),
+  ).toMatch(/antes da chegada/);
+  expect(
+    destinationScheduleError(
+      [
+        city("a", "2026-12-30", "2027-01-05"),
+        city("b", "2027-01-05", "2027-01-10"),
+      ],
+      ...range,
+    ),
+  ).toMatch(/dentro do período/);
+  expect(
+    destinationScheduleError(
+      [
+        city("a", "2027-01-01", "2027-01-06"),
+        city("b", "2027-01-05", "2027-01-10"),
+      ],
+      ...range,
+    ),
+  ).toMatch(/sobrepor/);
+  expect(
+    destinationScheduleError(
+      [
+        city("a", "2027-01-01", "2027-01-05"),
+        city("b", "2027-01-05", "2027-01-10"),
+      ],
+      ...range,
+    ),
+  ).toBeNull();
 });
