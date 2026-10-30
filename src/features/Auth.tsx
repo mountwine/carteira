@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { emailAuth } from "../adapters";
+import { cloudConfigError } from "../adapters/cloud";
 import { localAuth, resetPassword } from "../adapters/local";
 import { CodeLogin } from "./CodeLogin";
 export function Auth() {
@@ -116,6 +117,7 @@ function LocalLogin() {
       >
         {mode === "signup" ? "Entrar" : "Criar conta"}
       </button>
+      {cloudConfigError && <p role="alert">{cloudConfigError}</p>}
       <p className="muted">Conta e dados salvos somente neste dispositivo.</p>
     </main>
   );
