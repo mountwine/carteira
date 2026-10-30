@@ -1,6 +1,8 @@
 import type { AnyEntity } from "../domain/entities";
 import type { Trip } from "../domain/models";
 import { all, get, put } from "./database";
+import type { Photo } from "./media";
+import type { MediaStore } from "./photoSync";
 import type { Cursor, HistoryEntry, LocalStore, SyncMark } from "./cloudSync";
 
 const tripsKey = "travel-os:trips:v1";
@@ -30,4 +32,9 @@ export const browserStore: LocalStore = {
           : null;
     channel?.postMessage(tripId);
   },
+};
+
+export const browserMedia: MediaStore = {
+  list: () => all<Photo>("media"),
+  put: (photo) => put("media", photo),
 };

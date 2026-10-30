@@ -3,7 +3,10 @@ import { cloudClient } from "./cloud";
 import { createEmailAuth } from "./emailAuth";
 import { createCloudRemote } from "./cloudRemote";
 import { createTripCodeApi } from "./tripCodeApi";
-import { browserStore } from "../data/browserStore";
+import { browserMedia, browserStore } from "../data/browserStore";
+import { setPhotoLoader } from "../data/media";
+import { createPhotoFiles } from "./cloudFiles";
+import { fullPath, syncPhotos } from "../data/photoSync";
 import { createSyncService, type SyncStatus } from "../data/cloudSync";
 import type { SessionAuth } from "../domain/ports";
 import type { User } from "../domain/models";
@@ -32,13 +35,27 @@ export function startCloudSync(
   onStatus: (status: SyncStatus) => void,
 ) {
   if (!cloudClient) return null;
+  const remote = createCloudRemote(cloudClient);
+  const files = createPhotoFiles(cloudClient);
+  setPhotoLoader((photo) => files.download(fullPath(photo)));
   const service = createSyncService({
     uid: user.id,
-    remote: createCloudRemote(cloudClient),
+    remote,
     store: browserStore,
     onTripsChanged,
     onStatus,
+    afterSync: async () => {
+      await syncPhotos(user.id, remote, files, browserMedia, browserStore, () =>
+        window.dispatchEvent(new Event("travel-os-media")),
+      );
+    },
   });
   service.start();
-  return service;
+  return {
+    ...service,
+    stop() {
+      service.stop();
+      setPhotoLoader(null);
+    },
+  };
 }

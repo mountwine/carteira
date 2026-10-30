@@ -3,8 +3,13 @@ import { useTravel } from "../data/TravelContext";
 import { Page, Modal, Empty, Segments, AddButton } from "../components/forms";
 import { DatePicker } from "../components/local";
 import { MediaImage } from "../components/MediaImage";
-import { importPhoto, migrateAlbum, photos, type Photo } from "../data/media";
-import { put } from "../data/database";
+import {
+  importPhoto,
+  migrateAlbum,
+  photos,
+  savePhoto,
+  type Photo,
+} from "../data/media";
 import {
   ChevronLeft,
   ChevronRight,
@@ -284,8 +289,7 @@ export function Album() {
             className="record-form"
             onSubmit={async (e) => {
               e.preventDefault();
-              await put("media", edit);
-              window.dispatchEvent(new Event("travel-os-media"));
+              await savePhoto(edit);
               setEdit(null);
             }}
           >
@@ -326,8 +330,7 @@ export function Album() {
           <button
             className="button primary"
             onClick={async () => {
-              await put("media", { ...selected, deleted: true });
-              window.dispatchEvent(new Event("travel-os-media"));
+              await savePhoto({ ...selected, deleted: true });
               setDeleting(false);
               t.back();
             }}
