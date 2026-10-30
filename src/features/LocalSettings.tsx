@@ -5,6 +5,7 @@ import type { User } from "../domain/models";
 import { all, put } from "../data/database";
 import { localAuth, accountConfigured, updateAccount } from "../adapters/local";
 import { emailAuth } from "../adapters";
+import { TripCodeCard } from "./TripCodeCard";
 import type { SyncStatus } from "../data/cloudSync";
 import { persistTrip } from "../adapters/local";
 export type NavigationApp = "ask" | "apple" | "google" | "waze";
@@ -392,11 +393,12 @@ export function LocalTravelers({ refresh }: { refresh: () => Promise<void> }) {
             </span>
             <span className="traveler-summary">
               <strong>{m.displayName}</strong>
-              <small>Registro local</small>
+              <small>{emailAuth ? "Participante" : "Registro local"}</small>
             </span>
           </li>
         ))}
       </ul>
+      <TripCodeCard refresh={refresh} />
       <button className="button primary" onClick={() => setAdding(true)}>
         + Adicionar viajante
       </button>

@@ -2,6 +2,7 @@ import { localAuth, localTrips, migrateStorage } from "./local";
 import { cloudClient } from "./cloud";
 import { createEmailAuth } from "./emailAuth";
 import { createCloudRemote } from "./cloudRemote";
+import { createTripCodeApi } from "./tripCodeApi";
 import { browserStore } from "../data/browserStore";
 import { createSyncService, type SyncStatus } from "../data/cloudSync";
 import type { SessionAuth } from "../domain/ports";
@@ -12,6 +13,8 @@ export { isLocal, isDemo, configurationError, backendClient } from "./runtime";
 export const emailAuth = cloudClient
   ? createEmailAuth(cloudClient, migrateStorage)
   : null;
+/** Join, show, renew and leave by trip code; null without online login. */
+export const tripCodes = cloudClient ? createTripCodeApi(cloudClient) : null;
 export const services = {
   auth: (emailAuth ?? localAuth) as SessionAuth,
   trips: {

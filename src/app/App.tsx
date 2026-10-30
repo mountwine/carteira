@@ -5,6 +5,7 @@ import { services, startCloudSync } from "../adapters";
 import type { SyncStatus } from "../data/cloudSync";
 import { homeContext, type Trip, type User } from "../domain/models";
 import { Auth } from "../features/Auth";
+import { JoinTrip } from "../features/JoinTrip";
 import { Trips } from "../features/Trips";
 import { TripEditor } from "../features/TripEditor";
 import { TravelProvider, type Screen } from "../data/TravelContext";
@@ -29,7 +30,6 @@ const rootEntry = (screen = "Hoje"): NavigationEntry => ({
   focus: "",
   scroll: 0,
 });
-const invitePattern = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$/;
 export function App() {
   const [user, setUser] = useState<User | null>(null),
     [ready, setReady] = useState(false),
@@ -40,7 +40,8 @@ export function App() {
       | "trips"
       | "avatar"
       | "add"
-      | "invite"
+      | "new"
+      | "join"
       | "logout"
       | "Conta"
       | "Amigos"
@@ -51,8 +52,6 @@ export function App() {
     [error, setError] = useState(""),
     [online, setOnline] = useState(navigator.onLine),
     [update, setUpdate] = useState<(() => void) | null>(null),
-    [invite, setInvite] = useState(""),
-    [inviteStatus, setInviteStatus] = useState(""),
     [now, setNow] = useState(new Date()),
     [recovery, setRecovery] = useState(""),
     [sync, setSync] = useState<SyncStatus>({ state: "idle" });
@@ -189,23 +188,6 @@ export function App() {
     history.replaceState({ travelOS: true }, "");
     window.scrollTo(0, 0);
   }
-  useEffect(() => {
-    if (invite.length !== 8) {
-      setInviteStatus("");
-      return;
-    }
-    setInviteStatus("Verificando convite…");
-    const timer = setTimeout(
-      () =>
-        setInviteStatus(
-          invitePattern.test(invite)
-            ? "Convites entre dispositivos ainda não estão disponíveis. Nenhuma viagem foi adicionada."
-            : "Código inválido. Use 8 letras/números, sem O, 0, I ou 1.",
-        ),
-      450,
-    );
-    return () => clearTimeout(timer);
-  }, [invite]);
   if (!ready)
     return (
       <div className="center-state" role="status">
@@ -278,15 +260,9 @@ export function App() {
                   <div className="trip-list-actions">
                     <button
                       className="button primary"
-                      onClick={() => setEditor(null)}
+                      onClick={() => setMenu("new")}
                     >
                       + Nova viagem
-                    </button>
-                    <button
-                      className="text-button"
-                      onClick={() => setMenu("invite")}
-                    >
-                      Entrar com convite
                     </button>
                   </div>
                 }
@@ -340,13 +316,7 @@ export function App() {
                   </small>
                 </button>
               ))}
-              <button
-                className="text-button"
-                onClick={() => {
-                  setMenu(null);
-                  setEditor(null);
-                }}
-              >
+              <button className="text-button" onClick={() => setMenu("new")}>
                 + Criar nova viagem
               </button>
             </Modal>
@@ -417,26 +387,41 @@ export function App() {
               </button>
             </Modal>
           )}
-          {menu === "invite" && (
-            <Modal title="Entrar com convite" onClose={() => setMenu(null)}>
-              <label>
-                Código
-                <input
-                  value={invite}
-                  maxLength={8}
-                  autoCapitalize="characters"
-                  onChange={(e) =>
-                    setInvite(
-                      e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""),
-                    )
-                  }
-                />
-              </label>
-              <p role="status">
-                {inviteStatus ||
-                  "Informe o código de 8 caracteres. Convites online serão conectados em uma versão futura."}
-              </p>
+          {menu === "new" && (
+            <Modal title="Nova viagem" onClose={() => setMenu(null)}>
+              <button
+                className="pick-row"
+                onClick={() => {
+                  setMenu(null);
+                  setEditor(null);
+                }}
+              >
+                <strong>Minha viagem</strong>
+                <small>Crie uma viagem do zero.</small>
+              </button>
+              <button className="pick-row" onClick={() => setMenu("join")}>
+                <strong>Código de viagem</strong>
+                <small>Entre numa viagem que alguém já criou.</small>
+              </button>
             </Modal>
+          )}
+          {menu === "join" && (
+            <JoinTrip
+              user={user}
+              onClose={() => setMenu(null)}
+              onJoined={async (id) => {
+                await syncNow.current?.();
+                const list = await services.trips.list(user.id);
+                setTrips(list);
+                setMenu(null);
+                const found = list.find((t) => t.id === id);
+                if (found) await selectTrip(found);
+                else
+                  setError(
+                    "Você entrou na viagem, mas ela ainda não carregou. Abra Conta e toque em Sincronizar agora.",
+                  );
+              }}
+            />
           )}
           {menu === "add" && (
             <Modal

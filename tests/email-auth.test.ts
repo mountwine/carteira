@@ -53,7 +53,7 @@ describe("login por código de e-mail", () => {
   it("monta o usuário a partir do e-mail ou do nome salvo", () => {
     expect(toUser(authUser())).toEqual({
       id: "u1",
-      name: "leo",
+      name: "Leo",
       email: "leo@example.com",
     });
     expect(
@@ -136,7 +136,7 @@ describe("login por código de e-mail", () => {
     expect(signedIn).toHaveBeenCalledTimes(1);
     emit({ user: authUser() });
     expect(seen).not.toHaveBeenCalled();
-    emit({ user: authUser({ user_metadata: { name: "Leo" } }) });
+    emit({ user: authUser({ user_metadata: { name: "Leonardo" } }) });
     expect(seen).toHaveBeenCalledTimes(1);
     emit(null);
     expect(seen).toHaveBeenLastCalledWith(null);

@@ -7,6 +7,9 @@ export const normalizeEmail = (value: string) => value.trim().toLowerCase();
 export const normalizeCode = (value: string) => value.replace(/\s+/g, "");
 export const validCode = (value: string) => /^\d{6,10}$/.test(value);
 
+const capitalize = (value: string) =>
+  value.charAt(0).toUpperCase() + value.slice(1);
+
 export function toUser(user: AuthUser): User {
   const email = user.email ?? "";
   const name = user.user_metadata?.name;
@@ -15,7 +18,7 @@ export function toUser(user: AuthUser): User {
     name:
       typeof name === "string" && name.trim()
         ? name.trim()
-        : email.split("@")[0] || "Viajante",
+        : capitalize(email.split("@")[0]) || "Viajante",
     email,
   };
 }

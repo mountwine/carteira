@@ -747,3 +747,54 @@ textarea:focus {
     animation: none !important;
   }
 }
+
+/* ---------- Código de viagem ---------- */
+.pick-row {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+}
+.pick-row:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.pick-row strong {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+.pick-row small {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+.trip-code-input {
+  font-family: Archivo, Manrope, sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-align: center;
+}
+.trip-code-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.trip-code {
+  font-family: Archivo, Manrope, sans-serif;
+  font-weight: 800;
+  font-size: 40px;
+  letter-spacing: 0.18em;
+  color: var(--color-text);
+}
