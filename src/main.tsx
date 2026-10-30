@@ -6,6 +6,7 @@ import "./styles/global.css";
 import "./styles/modules.css";
 import "./styles/v11.css";
 import "./styles/v12.css";
+import "./styles/v13.css";
 class ErrorBoundary extends Component<
   { children: ReactNode },
   { failed: boolean }
