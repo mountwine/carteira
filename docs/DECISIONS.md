@@ -235,3 +235,8 @@ e consequências. Ao substituir, preservar o registro anterior e vincular o novo
 Não registrar propostas pendentes como aprovadas. D009–D022 registram decisões de produto
 confirmadas; suas lacunas de implementação continuam abertas. As restrições da
 etapa atual não são proibições permanentes.
+
+## Login por código de e-mail (30/10/2026)
+
+- Decisão do usuário: substituir conta e senha local por e-mail + código, e levar as viagens para qualquer aparelho com o mesmo e-mail. Referência: app de investimentos do usuário (Supabase Auth, SMTP próprio, modelo "Magic Link" com `{{ .Token }}`).
+- Consequência: backend Supabase passa a existir; somente a chave pública (anon) vai ao navegador, a proteção dos dados é por RLS. Sincronização ainda não implementada (etapas 2 e 3 em PROJECT_STATE).

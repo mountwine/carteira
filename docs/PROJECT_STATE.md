@@ -65,6 +65,13 @@ migração ou limpeza de dados foi feita.
 - Telas largas (>= 900 px): navegação vira trilho lateral.
 - Validação: `pnpm typecheck`, `pnpm test` (90 testes) e `pnpm build` passaram. Conferido no navegador em 402 px e 1280 px: entrada, Início (duas cidades), Roteiro vazio, Mais, Reservas, Gastos, Compras, Bagagem, Documentos, Viajantes, Conversor, SOS e formulários. Não conferidos: Roteiro com atividades, Álbum e visualizador, mapa, impressão e dispositivo físico.
 
+## Login por código de e-mail (etapa 1 de 3, branch `claude/login-por-codigo`)
+
+- Com `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` definidas, o app troca o login local por e-mail + código (`signInWithOtp` com `shouldCreateUser`, `verifyOtp` tipo `email`, 6 a 10 dígitos). Sem as variáveis, o login local continua como era. Código em `src/adapters/cloud.ts`, `src/adapters/emailAuth.ts`, `src/features/CodeLogin.tsx`; escolha em `src/adapters/index.ts`.
+- O usuário passa a ter o id do Supabase. **Viagens e registros continuam só no aparelho** (IndexedDB/localStorage) e ainda não sincronizam: dados criados com o login local ficam preservados, mas não aparecem para o id novo. Por isso esta etapa não deve ser ativada em produção sozinha.
+- Pendente: etapa 2 (viagens e registros na nuvem, adoção dos dados locais no primeiro login, regras por viajante da viagem), etapa 3 (fotos/documentos e conflitos entre aparelhos).
+- Validação: `pnpm typecheck` e `pnpm test` (99 testes, 9 novos com cliente simulado). No navegador, com o servidor do Supabase simulado: e-mail, código, código inválido, entrada e sessão após recarregar. Não testado com um projeto Supabase real nem com o envio real de e-mail.
+
 ## Publicação
 
 O projeto Vercel `foravento-v1.2-vercel-source` (com a chave Geoapify no ambiente) está ligado a `mountwine/carteira`, Node 24.x. Cada branch gera um preview; a busca de lugares só responde no endereço igual a `ALLOWED_ORIGIN`, então não funciona nos previews. Produção só muda com merge na `main`.

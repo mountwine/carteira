@@ -47,7 +47,7 @@ Ao editar viagens, cada viajante e destino mantém seu identificador, inclusive 
 
 Novos destinos sem fuso verificado usam o relógio do aparelho; fusos explícitos anteriores são preservados, inclusive ao reordenar destinos. Não se inventa um fuso pelo nome da cidade.
 
-A senha usa PBKDF2/SHA-256, sal aleatório e 210.000 iterações; não se grava senha em texto. A chave de recuperação também é derivada. Essa autenticação local não equivale a um cofre criptografado: blobs/registros não são cifrados. Não há backend de contas.
+A senha usa PBKDF2/SHA-256, sal aleatório e 210.000 iterações; não se grava senha em texto. A chave de recuperação também é derivada. Essa autenticação local não equivale a um cofre criptografado: blobs/registros não são cifrados. Não há backend de contas, a menos que `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` estejam definidas: então o acesso passa a ser por código enviado ao e-mail (Supabase Auth), sem senha. Nessa etapa os dados de viagem ainda ficam só no aparelho.
 
 As fronteiras de dados e stores versionados permitem uma futura exportação/importação `.travelos`. **Backup/importação não foram implementados nesta rodada.**
 
