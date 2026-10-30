@@ -1,6 +1,6 @@
 # Foravento — V1.2 em implantação
 
-Aplicativo pessoal de viagens sobre a base funcional Travel OS V1.1. A interface V1.2 começou pelo cabeçalho, navegação global e Minhas Viagens; as demais telas seguem em atualização. React 19, TypeScript, Vite e PWA. Interface somente escura, com Archivo e Manrope locais e tokens da Rodada 04. Não existe conexão ativa com Supabase, OpenAI, Agent, tradução ou colaboração online.
+Aplicativo pessoal de viagens sobre a base funcional Travel OS V1.1. A interface V1.2 está em transformação visual integral, preservando os dados e fluxos existentes. React 19, TypeScript, Vite e PWA. Interface somente escura, com Archivo e Manrope locais e tokens da Rodada 04. Não existe conexão ativa com Supabase, OpenAI, Agent, tradução ou colaboração online.
 
 ## Executar e testar
 
@@ -22,6 +22,8 @@ Para testar: crie uma viagem; adicione atividades em horários fora de ordem; ca
 
 Para iPhone/Android instalado, utilize um endereço HTTPS estável. No Safari: Compartilhar → Adicionar à Tela de Início. No Android, utilize a instalação oferecida pelo navegador. Faça o primeiro carregamento online antes de testar sem conexão. A interface não contém botão global de instalação. O teste em dispositivo físico continua necessário para teclado, wheel picker, compartilhamento nativo e safe areas reais.
 
+Para apenas visualizar no iPhone na mesma rede Wi-Fi, execute `pnpm dev --host 0.0.0.0` no computador e abra no Safari `http://IP-LOCAL-DO-COMPUTADOR:5173`. Isso cria uma origem de dados diferente de `localhost`/`127.0.0.1`; não espere encontrar automaticamente viagens já salvas em outra origem. Para testar Geoapify por esse endereço, configure `ALLOWED_ORIGIN` no processo local com a origem exata `http://IP-LOCAL-DO-COMPUTADOR:5173`; a chave permanece exclusivamente no servidor. A instalação PWA deve ser avaliada em HTTPS estável.
+
 ## O que mudou
 
 - Navegação: Início, Roteiro, +, Álbum, Mais. O + abre quatro ações; não é uma página.
@@ -30,14 +32,14 @@ Para iPhone/Android instalado, utilize um endereço HTTPS estável. No Safari: C
 - Início automático: preparação com checklist/bagagem inline; durante com próxima atividade, previsão, gastos e reservas do dia; depois com retrospectiva e compras.
 - Roteiro apenas timeline, sempre ordenado por data e horário; novos registros exigem nome, dia, horário e local.
 - Places compartilhado entre viagem, atividade e reserva, com fallback manual explícito.
-- Álbum Por data/Destaques, blobs comprimidos e thumbnails, leitura de EXIF DateTimeOriginal, visualizador, edição e compartilhamento/download.
+- Álbum Por data/Imersivo horizontal, blobs comprimidos e thumbnails, leitura de EXIF DateTimeOriginal, visualizador ampliado, edição e compartilhamento/download.
 - Reservas/Documentos com dropdowns, tipos personalizados e arquivos locais. Compras com fotos, gasto vinculado e retorno da bagagem com quantidade/opt-out.
 - Conversor com cotação online/cache, unidades físicas, calçados masculino/feminino e referências de vestuário por marca; navegação externa com preferência local.
 - Mais contém somente Bagagem, Reservas, Documentos, Viajantes, Gastos, Compras, Conversor e SOS. SOS não oferece atalho direto 911.
 
 ## Arquitetura e arquivos principais
 
-`src/domain`: modelos, validações, fases, ordenação, conversões e mutações. `src/adapters/local.ts`: autenticação e viagens locais. `src/data`: repositório, IndexedDB, arquivos, mídia, journal de gravação e resolução de conflitos. `src/adapters/external.ts`: Places, câmbio e clima. `src/app`: contexto selecionado e histórico; mudar viagem remonta seu contexto e isola os registros. `src/components/local.tsx` e `LocalEditors.tsx`: formulários compartilhados. `src/styles/tokens.css` e `v11.css`: tokens e apresentação mobile. `api/places.ts`: endpoint Vercel, sem armazenamento de viagens no servidor.
+`src/domain`: modelos, validações, fases, ordenação, conversões e mutações. `src/adapters/local.ts`: autenticação e viagens locais. `src/data`: repositório, IndexedDB, arquivos, mídia, journal de gravação e resolução de conflitos. `src/adapters/external.ts`: Places, câmbio e clima. `src/app`: contexto selecionado e histórico; mudar viagem remonta seu contexto e isola os registros. `src/components/local.tsx` e `LocalEditors.tsx`: formulários compartilhados. `src/styles/tokens.css` e `v12.css`: tokens e apresentação V1.2, sobre estilos legados ainda usados. `api/places.ts`: endpoint server-side, sem armazenamento de viagens no servidor.
 
 Metadados pequenos de viagens, sessão e preferências permanecem no localStorage por compatibilidade; entidades, contas derivadas, imagens, anexos e caches ficam no IndexedDB. Compras e seus gastos são gravados em uma única transação, com vínculo estável e proteção contra duplicidade. Alterações concorrentes em entidades têm controle de versão; conflitos ficam disponíveis para revisão. Não há fila para sincronização remota. Os aliases internos legados `isDemo`/`backendClient` apenas mantêm compatibilidade com o repositório da V1: o primeiro seleciona armazenamento local e o segundo é nulo. Nenhum cliente remoto é construído.
 

@@ -5,10 +5,18 @@ import { DatePicker } from "../components/local";
 import { MediaImage } from "../components/MediaImage";
 import { importPhoto, migrateAlbum, photos, type Photo } from "../data/media";
 import { put } from "../data/database";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Share2,
+  Info,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 export function Album() {
   const t = useTravel(),
     [items, setItems] = useState<Photo[]>([]),
-    [view, setView] = useState<"date" | "highlights">("date"),
+    [view, setView] = useState<"date" | "immersive">("date"),
     [viewer, setViewer] = useState<string | null>(null),
     [info, setInfo] = useState(false),
     [edit, setEdit] = useState<Photo | null>(null),
@@ -123,7 +131,7 @@ export function Album() {
         label="Visualização do álbum"
         options={[
           { value: "date", label: "Por data" },
-          { value: "highlights", label: "Destaques" },
+          { value: "immersive", label: "Imersivo" },
         ]}
       />
       {!items.length ? (
@@ -165,15 +173,22 @@ export function Album() {
           </section>
         ))
       ) : (
-        <div className="photo-highlights">
+        <div
+          className="photo-immersive"
+          aria-label="Fotos em sequência horizontal"
+        >
           {items.map((p) => (
             <button
               key={p.id}
+              className="photo-immersive-item"
               aria-label={`Abrir foto ${p.caption || p.name}`}
               onClick={() => t.navigate("Álbum", p.id)}
             >
               <MediaImage id={p.id} alt={p.caption || p.name} />
-              <small>{p.caption || p.date}</small>
+              <span>
+                <strong>{p.caption || p.location || "Foto da viagem"}</strong>
+                <small>{p.date} · Toque para ampliar</small>
+              </span>
             </button>
           ))}
         </div>
@@ -196,7 +211,7 @@ export function Album() {
         >
           <header className={clean ? "controls-hidden" : ""}>
             <button aria-label="Fechar foto" onClick={() => t.back()}>
-              ‹ Álbum
+              <ChevronLeft size={19} /> Álbum
             </button>
             <span>
               {index + 1} / {items.length}
@@ -223,14 +238,26 @@ export function Album() {
           </div>
           <div className={`photo-controls ${clean ? "controls-hidden" : ""}`}>
             <button aria-label="Foto anterior" onClick={() => move(-1)}>
-              ‹
+              <ChevronLeft size={21} />
             </button>
-            <button onClick={() => void share(selected)}>Compartilhar</button>
-            <button onClick={() => setInfo(!info)}>Informações</button>
-            <button onClick={() => setEdit({ ...selected })}>Editar</button>
-            <button onClick={() => setDeleting(true)}>Excluir</button>
+            <button onClick={() => void share(selected)}>
+              <Share2 size={19} />
+              Compartilhar
+            </button>
+            <button onClick={() => setInfo(!info)}>
+              <Info size={19} />
+              Informações
+            </button>
+            <button onClick={() => setEdit({ ...selected })}>
+              <Pencil size={19} />
+              Editar
+            </button>
+            <button onClick={() => setDeleting(true)}>
+              <Trash2 size={19} />
+              Excluir
+            </button>
             <button aria-label="Próxima foto" onClick={() => move(1)}>
-              ›
+              <ChevronRight size={21} />
             </button>
           </div>
           {info && (

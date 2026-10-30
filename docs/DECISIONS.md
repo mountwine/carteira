@@ -182,15 +182,14 @@ trabalho futuro em [ROADMAP](ROADMAP.md).
 
 ### D018 — Duas navegações principais no Álbum
 
-- Estado: confirmado; adequação futura parcial.
+- Estado: confirmado; aplicado visualmente na V1.2 local, sujeito à validação final.
 - Decisão: navegação cronológica semelhante a galeria e navegação imersiva com
   fotos percorridas horizontalmente. Abrir foto deve ampliá-la e oferecer ações
   como compartilhamento.
-- Estado atual: há Por data/Destaques e visualizador ampliado com anterior/próxima,
-  gesto horizontal e compartilhar/download. “Destaques” não comprova por si só uma
-  segunda navegação principal imersiva conforme a direção confirmada.
-- Consequência: preservar recursos existentes e avaliar/adequar a segunda forma
-  de navegação; não declarar a experiência futura integralmente implementada.
+- Estado atual: Por data mostra mosaico cronológico; Imersivo mostra uma foto
+  grande por vez em sequência horizontal. Abrir mantém visualizador ampliado,
+  gesto lateral e ações de compartilhar, informações, editar e excluir.
+- Consequência: preservar as duas formas e validar gestos em dispositivo físico.
 
 ### D019 — Integração obrigatória da marca na build de identidade V1.2
 
@@ -213,7 +212,7 @@ trabalho futuro em [ROADMAP](ROADMAP.md).
 - Estado: confirmado pelo usuário em 20/10/2026; aplicação em andamento.
 - Decisão: Direção B — Em Movimento; Design System da Rodada 04 como referência visual principal; navegação Início / Roteiro / + / Álbum / Mais; apenas modo escuro. Preservar a logo oficial e Geoapify em `/api/places`.
 - Fonte: aprovação explícita do usuário e materiais `Foravento-Rodada-03-Direcoes-Visuais.html` e `Foravento-Rodada-04-Design-System.html`.
-- Consequência: usar os tokens e componentes da Rodada 04 sobre a arquitetura existente, sem reconstruir telas funcionalmente corretas. Minhas Viagens é a primeira tela em revisão visual; as demais aguardam aprovação.
+- Consequência: usar os tokens e componentes da Rodada 04 sobre a arquitetura existente, sem refazer regras de negócio. A revisão visual por tela foi substituída por D022.
 
 ### D021 — Tradutor fora da V1.2 e cards de Minhas Viagens
 
@@ -222,10 +221,17 @@ trabalho futuro em [ROADMAP](ROADMAP.md).
 - Fonte: instrução explícita do usuário após receber o guia V1.2.
 - Consequência: não criar tela/atalho do Tradutor na V1.2; manter eventual código legado sem exclusão destrutiva nesta etapa. A composição dos cards deve seguir o guia e a Rodada 04, preservando os dados e a ordem por fase.
 
+### D022 — Transformação visual integral na mesma rodada
+
+- Estado: confirmado pelo usuário em 20/10/2026; em execução.
+- Decisão: aplicar a nova UI V1.2 ao fluxo completo, sem aprovações por tela. As cinco imagens orientam composição e qualidade; a Rodada 04 governa tokens e identidade. Manter Início / Roteiro / + / Álbum / Mais, modo escuro, Geoapify e dados existentes. Não restaurar Agente, Explorar, Tradutor, Checklist separado ou atalho 911; não apresentar sugestões fictícias.
+- Fonte: pedido explícito “FORAVENTO V1.2 — IMPLEMENTAÇÃO VISUAL COMPLETA”.
+- Consequência: validar páginas, formulários, detalhes, estados vazios e responsividade juntos; registrar com precisão o que ainda não foi concluído.
+
 ## Como acrescentar decisões
 
 Usar ID estável, data, estado (vigente/substituída), decisão, fonte de confirmação
 e consequências. Ao substituir, preservar o registro anterior e vincular o novo.
-Não registrar propostas pendentes como aprovadas. D009–D021 registram decisões de produto
+Não registrar propostas pendentes como aprovadas. D009–D022 registram decisões de produto
 confirmadas; suas lacunas de implementação continuam abertas. As restrições da
 etapa atual não são proibições permanentes.

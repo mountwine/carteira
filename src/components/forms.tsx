@@ -88,7 +88,7 @@ export function Page({
 }) {
   const t = useTravel();
   return (
-    <main className="module-page">
+    <main className="module-page" data-page={title}>
       {t.backLabel && (
         <button className="text-button" onClick={t.back}>
           <ChevronLeft size={18} />

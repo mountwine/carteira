@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Page } from "../components/forms";
-import { currencies, DropdownFilter } from "../components/local";
+import { Page, Segments } from "../components/forms";
+import { currencies } from "../components/local";
 import { currentRate, type FxQuote } from "../adapters/external";
 import { convert, unitGroups } from "../domain/conversions";
 const categories: [string, string][] = [
@@ -122,11 +122,18 @@ export function ConverterV11() {
               ["GG", "XL", "112–124"],
             ];
   return (
-    <Page title="Conversor" back="Mais">
-      <DropdownFilter
-        label="Categoria"
+    <Page
+      title="Conversor"
+      subtitle="Moedas, medidas e referências de tamanhos."
+      back="Mais"
+    >
+      <Segments
+        label="Tipo de conversão"
         value={category}
-        options={categories}
+        options={categories.map(([value, label]) => ({
+          value,
+          label: label.replace(/^[^\p{L}\p{N}]+/u, ""),
+        }))}
         onChange={(v) => {
           setCategory(v);
           const next = unitsFor(v);

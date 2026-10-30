@@ -2,9 +2,10 @@
 
 Atualizado em 20/10/2026. Estrutura técnica aprovada pelo usuário; prioridades de
 estabilização baseadas na auditoria. Direções de produto confirmadas em
-[DECISIONS](DECISIONS.md), D009–D021. Não autoriza implementação automática.
+[DECISIONS](DECISIONS.md), D009–D022. Não autoriza implementação automática.
 K01 concluído, validado e aprovado pelo usuário em 06/10/2026. Primeiro bloco da
-identidade V1.2 implementado no working tree, em revisão. IDs K01–K08 referem-se a
+identidade V1.2 preservado no checkpoint `8c71dda`; rodada visual integral D022
+em execução no working tree. IDs K01–K08 referem-se a
 [PROJECT_STATE](PROJECT_STATE.md), que registra o estado funcional V1.1.
 
 ## 1. Estabilização dos problemas auditados
@@ -39,18 +40,21 @@ recomendada pela auditoria: definir contrato e restauração verificável após 
 estabilização. Escopo e implementação ainda não aprovados; não iniciar aqui.
 Não inventar formato definitivo, sincronização ou serviços remotos.
 
-## 4. V1.2 — início da identidade Foravento
+## 4. V1.2 — transformação visual Foravento
 
 Marco confirmado: a nova identidade visual começa na V1.2 (D009–D012 e D019).
-A base funcional continua V1.1. O primeiro bloco cobre shell global e Minhas Viagens; não há
-data de entrega nem compromisso de concluir todos os pontos de marca nesta etapa.
+A base funcional continua V1.1. D022 substituiu a aprovação por tela por uma
+rodada integral; estado abaixo distingue implementação de validação pendente.
 
-| Trabalho previsto                                            | Critério de conclusão                                                                                                                                 | Estado                                                          |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Iniciar a substituição da identidade Travel OS por Foravento | Entrada, cabeçalho, título/manifesto e navegação global; conferir versão final do símbolo e atualizar depois ícones/splash e demais pontos aplicáveis | Shell inicial implementado; em revisão                          |
-| Aplicar Rodada 04 em Minhas Viagens                          | Cards horizontais com capa real/fundo escuro, estados por fase, criação/edição, tokens e preview responsiva, sem mudar persistência                   | Implementado e validado localmente; aguardando aprovação visual |
-| Preservar arquitetura funcional                              | Identidade aplicada sobre a base atual, sem reescrita motivada pela marca; dados e fluxos preservados                                                 | Restrição confirmada                                            |
-| Manter somente modo escuro                                   | Identidade coerente com o modo escuro; nenhuma introdução de modo claro/automático                                                                    | Restrição confirmada por enquanto                               |
+| Trabalho previsto                                            | Critério de conclusão                                                                                                                                 | Estado                                                                                      |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Iniciar a substituição da identidade Travel OS por Foravento | Entrada, cabeçalho, título/manifesto e navegação global; conferir versão final do símbolo e atualizar depois ícones/splash e demais pontos aplicáveis | Shell inicial implementado; em revisão                                                      |
+| Aplicar Rodada 04 em Minhas Viagens                          | Cards horizontais com capa real/fundo escuro, estados por fase, criação/edição, tokens e preview responsiva, sem mudar persistência                   | Implementado e validado localmente; revisão conjunta D022                                   |
+| Redesenhar Início, Roteiro, Álbum e Mais                     | Composição fotográfica/contextual, timeline única, Por data/Imersivo e oito módulos, sem dados fictícios                                              | Implementação visual no working tree; validação cruzada em andamento                        |
+| Aplicar sistema a módulos, formulários e detalhes            | Reservas, gastos, compras, bagagem, documentos, conversor, viajantes, SOS, modais e estados vazios consistentes                                       | Tratamento compartilhado e específico no working tree; verificação visual completa pendente |
+| Validar visualmente e em dispositivo                         | Capturas reais 375/402/440, fluxos com dados representativos, teclado/gestos/safe areas no iPhone, PWA/ícones                                         | Capturas parciais em navegador; aparelho físico e ícones instaláveis pendentes              |
+| Preservar arquitetura funcional                              | Identidade aplicada sobre a base atual, sem reescrita motivada pela marca; dados e fluxos preservados                                                 | Restrição confirmada                                                                        |
+| Manter somente modo escuro                                   | Identidade coerente com o modo escuro; nenhuma introdução de modo claro/automático                                                                    | Restrição confirmada por enquanto                                                           |
 
 Referências recebidas em 20/10/2026: PRD V1, mockups V1, símbolo e HTMLs das
 Rodadas 01–04. A Rodada 04 é referência visual principal, com Direção B aprovada.

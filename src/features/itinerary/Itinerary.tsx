@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { MapPin } from "lucide-react";
 import { useTravel } from "../../data/TravelContext";
 import { daysOf, ofKind, dateLabel, type Entity } from "../../domain/entities";
 import { ordered, conflicts, travelEstimate } from "../../domain/planning";
@@ -151,17 +152,26 @@ export function Itinerary() {
                   {a.data.fixed && <span className="fixed-badge">Fixo</span>}
                 </div>
                 <Card
-                  className={a.data.status === "done" ? "activity-done" : ""}
+                  className={`itinerary-activity-card ${a.data.status === "done" ? "activity-done" : ""}`}
                 >
-                  <h3>{a.data.title}</h3>
-                  <p>📍 {a.data.address || "Revisar local"}</p>
+                  <div className="itinerary-activity-main">
+                    <span className="itinerary-activity-icon">
+                      <MapPin size={23} />
+                    </span>
+                    <div>
+                      <h3>{a.data.title}</h3>
+                      <p>
+                        <MapPin size={14} /> {a.data.address || "Revisar local"}
+                      </p>
+                    </div>
+                  </div>
                   {a.data.needsTime && (
                     <p className="warning">
                       Atividade anterior sem horário. Edite para completar.
                     </p>
                   )}
                   {a.data.notes && <p>{a.data.notes}</p>}
-                  <div className="action-row">
+                  <div className="action-row itinerary-primary-actions">
                     <NavigateButton
                       address={a.data.address}
                       lat={a.data.lat}

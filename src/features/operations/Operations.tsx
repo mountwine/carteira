@@ -106,7 +106,10 @@ export function Reservations() {
                   ? Utensils
                   : Ticket;
         return (
-          <Card key={r.id} className={t.focus === r.id ? "focused-record" : ""}>
+          <Card
+            key={r.id}
+            className={`reservation-card ${t.focus === r.id ? "focused-record" : ""}`}
+          >
             <div className="section-heading">
               <Icon className="blue" />
               <span className={`status-chip ${r.data.status}`}>
@@ -258,7 +261,7 @@ export function Expenses() {
       {fxError && (
         <p role="status">{fxError} Totais em USD até atualizar a taxa.</p>
       )}
-      <Card>
+      <Card className="budget-card">
         <div className="section-heading">
           <span>Orçamento total</span>
           <Button variant="ghost" onClick={() => setBudgetOpen(true)}>
@@ -342,7 +345,10 @@ export function Expenses() {
       />
       {!list.length && <Empty title="Nenhum gasto nesta categoria" />}
       {list.map((e) => (
-        <Card key={e.id} className={t.focus === e.id ? "focused-record" : ""}>
+        <Card
+          key={e.id}
+          className={`expense-card ${t.focus === e.id ? "focused-record" : ""}`}
+        >
           <div className="section-heading">
             <h3>{e.data.title}</h3>
             <strong>{money(e.data.amount, e.data.currency)}</strong>
@@ -445,7 +451,10 @@ export function Shopping() {
       />
       {!items.length && <Empty />}
       {items.map((s) => (
-        <Card key={s.id} className={t.focus === s.id ? "focused-record" : ""}>
+        <Card
+          key={s.id}
+          className={`shopping-card ${t.focus === s.id ? "focused-record" : ""}`}
+        >
           <div className="product-row">
             {s.data.photoIds?.[0] ? (
               <MediaImage id={s.data.photoIds[0]} thumb alt={s.data.title} />
@@ -700,7 +709,7 @@ export function Luggage() {
                 .reduce((n, s) => n + s.data.weight * (s.data.quantity ?? 1), 0)
             : 0);
         return (
-          <Card key={b.id}>
+          <Card key={b.id} className="bag-card">
             <div className="section-heading">
               <Briefcase className="blue" />
               <span>
@@ -1083,7 +1092,10 @@ export function Documents() {
         </p>
       )}
       {docs.map((d) => (
-        <Card key={d.id} className={t.focus === d.id ? "focused-record" : ""}>
+        <Card
+          key={d.id}
+          className={`document-card ${t.focus === d.id ? "focused-record" : ""}`}
+        >
           <div className="section-heading">
             <FileText className="blue" />
             {d.visibility === "private" ? (

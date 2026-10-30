@@ -74,7 +74,7 @@ export function TimeWheelPicker({
         <label>
           Hora
           <select
-            size={3}
+            aria-label="Hora"
             value={h}
             onChange={(e) => onChange(`${e.target.value}:${m}`)}
           >
@@ -89,7 +89,7 @@ export function TimeWheelPicker({
         <label>
           Minuto
           <select
-            size={3}
+            aria-label="Minuto"
             value={m}
             onChange={(e) => onChange(`${h}:${e.target.value}`)}
           >
@@ -206,13 +206,18 @@ export function PlaceAutocomplete({
           ))}
         </div>
       )}
-      {(options.some((p) => p.provider === "geoapify") || value.provider === "geoapify") && (
+      {(options.some((p) => p.provider === "geoapify") ||
+        value.provider === "geoapify") && (
         <small className="places-attribution" translate="no">
           <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">
             Powered by Geoapify
           </a>
           <span> · </span>
-          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noreferrer"
+          >
             © OpenStreetMap contributors
           </a>
         </small>

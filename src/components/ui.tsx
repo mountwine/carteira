@@ -9,7 +9,7 @@ import {
   Plus,
   Camera,
 } from "lucide-react";
-export type Tab = "Hoje" | "Roteiro" | "Agente" | "Explorar" | "Mais";
+export type Tab = "Hoje" | "Roteiro" | "Álbum" | "Mais";
 export function Card({
   children,
   className = "",

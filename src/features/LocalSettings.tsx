@@ -293,12 +293,17 @@ export function LocalTravelers({ refresh }: { refresh: () => Promise<void> }) {
     [name, setName] = useState(""),
     [adding, setAdding] = useState(false);
   return (
-    <Page title="Viajantes" back="Mais">
+    <Page title="Viajantes" subtitle="Pessoas desta viagem." back="Mais">
       <ul className="local-travelers">
         {t.trip.members.map((m) => (
           <li className="card" key={m.userId}>
-            <strong>{m.displayName}</strong>
-            <small>Registro local</small>
+            <span className="traveler-avatar" aria-hidden="true">
+              {m.displayName.charAt(0).toUpperCase()}
+            </span>
+            <span className="traveler-summary">
+              <strong>{m.displayName}</strong>
+              <small>Registro local</small>
+            </span>
           </li>
         ))}
       </ul>

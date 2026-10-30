@@ -2,10 +2,12 @@
 
 Atualizado em 20/10/2026. Referência funcional: checkpoint `b4c8568`
 (Geoapify e estabilização), branch `main`; baseline original `7f1cc01` e K01
-`6691395`. A V1.2 iniciou no shell visual e em Minhas Viagens, ainda sem commit. K02/K04/K05/K07
-foram preservados no checkpoint; nenhuma migração ou limpeza de dados foi feita.
+`6691395`. O shell visual e Minhas Viagens foram preservados no checkpoint
+`8c71dda` antes da rodada visual integral. A evolução descrita abaixo está no
+working tree, ainda sem novo commit. K02/K04/K05/K07 permanecem na base; nenhuma
+migração ou limpeza de dados foi feita.
 
-## Primeiro bloco visual V1.2 — em revisão
+## Interface V1.2 — rodada visual integral em execução
 
 - A entrada, o cabeçalho, o título do navegador e o nome do manifesto exibem
   **Foravento**. O símbolo enviado pelo usuário em 20/10/2026 foi copiado sem
@@ -25,8 +27,18 @@ foram preservados no checkpoint; nenhuma migração ou limpeza de dados foi feit
 - Os HTMLs das Rodadas 01–04 foram recebidos e consultados; as pranchas são
   referência ilustrativa, e os valores explícitos da Rodada 04 prevalecem.
   A versão vetorial master do símbolo ainda não foi disponibilizada.
-- Ícones instaláveis, splash e demais telas ainda conservam elementos V1.1.
-  A atualização de nome no manifesto não substitui os ícones instalados.
+- Entrada usa capa fotográfica de referência licenciada; Início usa a capa real
+  da viagem, ou superfície escura sem foto, e destaca dados reais de Antes,
+  Durante e Depois. Roteiro tem faixa de datas e timeline compacta; a pesquisa
+  de lugar continua ligada ao mesmo componente Geoapify. Mais apresenta os oito
+  módulos definitivos em cards com ícones e contexto. Álbum oferece Por data e
+  Imersivo horizontal, além do visualizador com ações.
+- Formulários e modais compartilhados receberam controles, superfície e
+  tipografia V1.2. O seletor de horário usa selects compactos acessíveis; a
+  persistência e validações não mudaram. Reservas, gastos, compras, bagagem,
+  documentos, conversor e viajantes receberam tratamento visual adicional.
+- Ícones instaláveis e splash ainda conservam elementos V1.1; o arquivo master
+  vetorial oficial do símbolo segue indisponível. Nome/manifesto foram atualizados.
 - A prévia local `127.0.0.1:5174` recebeu `ALLOWED_ORIGIN` apenas no processo do
   servidor; a chave Geoapify preexistente permaneceu no ambiente server-side.
   Resposta real de `/api/places` incluiu nome, endereço, identificador e
@@ -35,8 +47,15 @@ foram preservados no checkpoint; nenhuma migração ou limpeza de dados foi feit
   `localhost:5173` tem origem e armazenamento distintos, preservados.
 - Cards com foto e fallback escuro foram conferidos em 375/402/440 px, sem
   rolagem horizontal; abrir o card e o lápis dispararam ações independentes.
-  `pnpm test` aprovou 83/83 testes; TypeScript do app e da API, `pnpm build`
-  (Vite/PWA) e `git diff --check` aprovaram. Sem certificação física.
+  Na rodada integral, capturas reais do navegador foram feitas para Início,
+  Roteiro com atividade, Álbum, Mais, Conversor, Reservas e formulários. Uma
+  atividade sintética foi criada após selecionar resultado real Geoapify e
+  salva no armazenamento isolado de `127.0.0.1:5174`. Ainda falta verificação
+  visual com dados representativos de todos os módulos. As três fases foram
+  abertas com viagens sintéticas; não houve certificação em dispositivo físico.
+  Nesta rodada, `pnpm test` passou com 83/83 testes, `pnpm build` passou com
+  checagem TypeScript do aplicativo e de `api/places.ts` e geração PWA, e
+  `git diff --check` não apontou problemas.
 
 ## Fonte e limites
 

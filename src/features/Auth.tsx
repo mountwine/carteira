@@ -8,9 +8,15 @@ export function Auth() {
     [recovery, setRecovery] = useState("");
   return (
     <main className="local-login">
+      <div className="login-cover" aria-hidden="true" />
       <div className="login-brand">
         <img src="/foravento-mark.png" alt="" width="48" height="48" />
         <h1>Foravento</h1>
+      </div>
+      <div className="login-intro">
+        <span className="eyebrow">SUA VIAGEM EM UM SÓ LUGAR</span>
+        <h2>Viaje com tudo ao seu alcance.</h2>
+        <p>Planeje, organize e acompanhe cada momento da sua viagem.</p>
       </div>
       <form
         onSubmit={async (e) => {

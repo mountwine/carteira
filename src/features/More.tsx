@@ -1,42 +1,63 @@
 import { Page } from "../components/forms";
 import { useTravel, type Screen } from "../data/TravelContext";
+import {
+  BriefcaseBusiness,
+  CalendarCheck2,
+  FileText,
+  UsersRound,
+  Wallet,
+  ShoppingBag,
+  ArrowLeftRight,
+  ShieldPlus,
+  ChevronRight,
+} from "lucide-react";
 const sections = [
   [
-    "Viagem",
+    "Sua viagem",
     [
-      ["Bagagem", "🧳"],
-      ["Reservas", "🎟"],
-      ["Documentos", "📄"],
-      ["Viajantes", "👥"],
+      ["Reservas", CalendarCheck2, "Voos, hospedagem e experiências"],
+      ["Gastos", Wallet, "Orçamento e despesas"],
+      ["Compras", ShoppingBag, "Lista e itens comprados"],
+      ["Bagagem", BriefcaseBusiness, "Malas e itens por viajante"],
     ],
   ],
   [
-    "Dinheiro & compras",
+    "Informações e ferramentas",
     [
-      ["Gastos", "💰"],
-      ["Compras", "🛍"],
-      ["Conversor", "💱"],
+      ["Documentos", FileText, "Arquivos e informações essenciais"],
+      ["Viajantes", UsersRound, "Pessoas desta viagem"],
+      ["Conversor", ArrowLeftRight, "Moedas, medidas e tamanhos"],
+      ["SOS", ShieldPlus, "Seguro, hospedagem e contatos"],
     ],
   ],
-  ["Segurança", [["SOS", "🆘"]]],
 ] as const;
 export function More() {
   const t = useTravel();
   return (
-    <Page title="Mais">
+    <Page
+      title="Mais"
+      subtitle="Tudo o que você precisa para esta viagem, em um só lugar."
+    >
       {sections.map(([name, items]) => (
-        <section key={name}>
+        <section className="more-section" key={name}>
           <h2 className="eyebrow module-section-title">{name}</h2>
           <div className="more-grid">
-            {items.map(([label, icon]) => (
+            {items.map(([label, Icon, description]) => (
               <button
                 key={label}
                 className="card more-card"
                 onClick={() => t.navigate(label as Screen)}
               >
-                <span>{icon}</span>
+                <span className="more-icon">
+                  <Icon size={22} aria-hidden="true" />
+                </span>
                 <strong>{label}</strong>
-                <span aria-hidden="true">›</span>
+                <small>{description}</small>
+                <ChevronRight
+                  className="more-chevron"
+                  size={18}
+                  aria-hidden="true"
+                />
               </button>
             ))}
           </div>

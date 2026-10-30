@@ -9,6 +9,15 @@ import { RecordEditor, RecordActions, Page, Modal } from "../components/forms";
 import { NavigateButton } from "./LocalSettings";
 import { subscribeToPhotos, type Photo } from "../data/media";
 import { weatherForecast, type WeatherForecast } from "../adapters/external";
+import {
+  CalendarDays,
+  MapPin,
+  CloudSun,
+  Wallet,
+  BriefcaseBusiness,
+  ArrowRight,
+  Camera,
+} from "lucide-react";
 function dateRange(start: string, end: string) {
   return `${new Date(start + "T12:00:00").toLocaleDateString("pt-BR", { day: "numeric", month: "short" }).replace(".", "")} — ${new Date(end + "T12:00:00").toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" }).replace(".", "")}`.toUpperCase();
 }
@@ -248,63 +257,91 @@ export function LocalHome() {
       0,
     );
   return (
-    <main className="module-page local-home">
+    <main className="module-page local-home" data-phase={ctx.phase}>
       <section className={`trip-hero phase-${ctx.phase}`}>
         <TripCover cover={t.trip.cover} position={t.trip.coverPosition} />
         <div className="hero-overlay" />
         <div className="hero-content">
-          <small>🗓 {dateRange(t.trip.startDate, t.trip.endDate)}</small>
-          <h1>
-            {t.trip.name}
-            {ctx.phase === "during" && city ? ` / ${city}` : ""}
-          </h1>
+          <small className="hero-date">
+            <CalendarDays size={15} />{" "}
+            {dateRange(t.trip.startDate, t.trip.endDate)}
+          </small>
+          <span className="hero-phase">
+            {ctx.phase === "before"
+              ? "PRÓXIMA VIAGEM"
+              : ctx.phase === "during"
+                ? "EM VIAGEM"
+                : "SUA VIAGEM"}
+          </span>
+          <h1>{t.trip.name}</h1>
           <p>
             {ctx.phase === "during"
-              ? `DIA ${ctx.day} DE ${ctx.totalDays}`
+              ? `${city ? `${city} · ` : ""}Dia ${ctx.day} de ${ctx.totalDays}`
               : t.trip.destinations.map((d) => d.city).join(" · ")}
           </p>
           {ctx.phase === "before" ? (
-            <>
-              <span className="eyebrow">FALTAM</span>
-              <strong className="outline-count">{ctx.daysUntil} dias</strong>
-            </>
+            <div className="hero-counter">
+              <strong>{ctx.daysUntil}</strong>
+              <span>{ctx.daysUntil === 1 ? "dia" : "dias"} para começar</span>
+            </div>
           ) : ctx.phase === "during" ? (
-            <>
-              <p>
+            <div className="hero-context">
+              <span>
                 {new Date(ctx.date + "T12:00:00")
                   .toLocaleDateString("pt-BR", {
                     day: "numeric",
                     month: "short",
                     weekday: "long",
                   })
-                  .toUpperCase()}
-              </p>
+                  .replace("-feira", "")}
+              </span>
               {forecast && (
-                <p>
-                  {Math.round(forecast.temperature)}° · Pôr do sol{" "}
-                  {forecast.days[0]?.sunset}
-                </p>
+                <span>
+                  <CloudSun size={18} /> {Math.round(forecast.temperature)}° ·
+                  Pôr do sol {forecast.days[0]?.sunset}
+                </span>
               )}
-            </>
+            </div>
           ) : (
-            <strong>Memórias da viagem</strong>
+            <strong className="hero-after">Reviva os momentos da viagem</strong>
           )}
         </div>
       </section>
       {ctx.phase === "before" ? (
         <>
+          <div className="home-section-title">
+            <div>
+              <span className="eyebrow">ANTES DE PARTIR</span>
+              <h2>Prepare sua viagem</h2>
+            </div>
+          </div>
           <InlineChecklist />
           <InlineChecklist packing />
         </>
       ) : ctx.phase === "during" ? (
         <>
+          <div className="home-section-title">
+            <div>
+              <span className="eyebrow">SEU DIA</span>
+              <h2>O que vem agora</h2>
+            </div>
+            <button
+              className="text-button"
+              onClick={() => t.navigate("Roteiro")}
+            >
+              Roteiro <ArrowRight size={16} />
+            </button>
+          </div>
           {next ? (
             <section className="card next-activity">
-              <span className="eyebrow">PRÓXIMO</span>
-              <h2>
-                {next.data.time} · {next.data.title}
-              </h2>
-              <p>📍 {next.data.address}</p>
+              <span className="home-card-kicker">
+                A SEGUIR · {next.data.time}
+              </span>
+              <h2>{next.data.title}</h2>
+              <p>
+                <MapPin size={16} />{" "}
+                {next.data.address || "Local ainda não definido"}
+              </p>
               <div className="action-row">
                 <NavigateButton
                   address={next.data.address}
@@ -331,7 +368,10 @@ export function LocalHome() {
             </section>
           )}
           <section className="card compact-forecast">
-            <h2>Previsão</h2>
+            <div className="home-card-heading">
+              <CloudSun size={21} />
+              <h2>Previsão</h2>
+            </div>
             {forecast ? (
               <>
                 <p>
@@ -357,7 +397,10 @@ export function LocalHome() {
           </section>
           <section className="card">
             <div className="section-heading">
-              <h2>Gastos hoje</h2>
+              <div className="home-card-heading">
+                <Wallet size={21} />
+                <h2>Gastos hoje</h2>
+              </div>
               <button
                 aria-label="Adicionar gasto"
                 className="add-button"
@@ -371,7 +414,10 @@ export function LocalHome() {
           </section>
           {reservations.length > 0 && (
             <section className="card">
-              <h2>Reservas de hoje</h2>
+              <div className="home-card-heading">
+                <CalendarDays size={21} />
+                <h2>Reservas de hoje</h2>
+              </div>
               {reservations.map((r) => (
                 <button
                   className="menu-row"
@@ -385,7 +431,10 @@ export function LocalHome() {
           )}
           {ctx.totalDays - ctx.day <= 2 && (
             <section className="card">
-              <h2>🧳 Hora de fazer as malas</h2>
+              <div className="home-card-heading">
+                <BriefcaseBusiness size={21} />
+                <h2>Hora de fazer as malas</h2>
+              </div>
               <p>Não esqueça nada.</p>
               <button
                 className="button secondary"
@@ -399,6 +448,15 @@ export function LocalHome() {
         </>
       ) : (
         <>
+          <div className="home-section-title">
+            <div>
+              <span className="eyebrow">DEPOIS DA VIAGEM</span>
+              <h2>Sua retrospectiva</h2>
+            </div>
+            <button className="text-button" onClick={() => t.navigate("Álbum")}>
+              <Camera size={17} /> Álbum
+            </button>
+          </div>
           <section className="card">
             <h2>Retrospectiva</h2>
             <p>
@@ -418,15 +476,6 @@ export function LocalHome() {
               <div>
                 <strong>{album.length}</strong>
                 <small>fotos</small>
-              </div>
-              <div>
-                <strong>
-                  {
-                    ofKind(t.records, "memory").filter((m) => m.data.favorite)
-                      .length
-                  }
-                </strong>
-                <small>favoritos</small>
               </div>
             </div>
             <button
