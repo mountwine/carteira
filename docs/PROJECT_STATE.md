@@ -57,6 +57,14 @@ migração ou limpeza de dados foi feita.
   checagem TypeScript do aplicativo e de `api/places.ts` e geração PWA, e
   `git diff --check` não apontou problemas.
 
+## Interface V1.3 — "Céu com passagem" (branch `claude/refactor-gpt-codex-app-od8qee`)
+
+- Tema claro (céu azul-pálido, cartões brancos, navegação azul-marinho) em `src/styles/v13.css`, camada final que sobrescreve as anteriores. Fraunces (títulos, `public/fraunces*.woff2`, licença OFL) entra como serifa; Archivo e Manrope continuam. O tema escuro da V1.2 deixou de existir: não há alternância.
+- Início usa o cartão de embarque (`src/features/TripPass.tsx`). O título mostra a cidade do dia e o dia da semana (`src/domain/homeHeadline.ts`); a cidade vem de `homeContext`, que já escolhia o destino pelas datas. Com mais de uma cidade, o cartão lista cada uma com seus dias e marca a atual.
+- Editor de viagem pede chegada e saída de cada cidade quando há mais de uma. Ao acrescentar uma cidade, a última é dividida para cobrir a viagem. Validação em `destinationScheduleError` (dentro do período, saída depois da chegada, sem sobreposição; o dia da troca pode ser o mesmo). A validação fica só no editor: viagens antigas com destinos sobrepostos continuam abrindo e só pedem ajuste ao editar.
+- Telas largas (>= 900 px): navegação vira trilho lateral.
+- Validação: `pnpm typecheck`, `pnpm test` (90 testes) e `pnpm build` passaram. Conferido no navegador em 402 px e 1280 px: entrada, Início (duas cidades), Roteiro vazio, Mais, Reservas, Gastos, Compras, Bagagem, Documentos, Viajantes, Conversor, SOS e formulários. Não conferidos: Roteiro com atividades, Álbum e visualizador, mapa, impressão e dispositivo físico.
+
 ## Fonte e limites
 
 Baseado na auditoria de 06/10/2026, código, testes, README e [QA histórica](QA.md)
