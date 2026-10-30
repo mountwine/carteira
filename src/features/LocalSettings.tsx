@@ -5,6 +5,7 @@ import type { User } from "../domain/models";
 import { all, put } from "../data/database";
 import { localAuth, accountConfigured, updateAccount } from "../adapters/local";
 import { emailAuth } from "../adapters";
+import type { SyncStatus } from "../data/cloudSync";
 import { persistTrip } from "../adapters/local";
 export type NavigationApp = "ask" | "apple" | "google" | "waze";
 export const navigationPreference = () =>
@@ -134,7 +135,29 @@ export function LocalSettings() {
     </Page>
   );
 }
-function OnlineAccountContent({ user }: { user: User }) {
+function syncLabel(sync: SyncStatus) {
+  switch (sync.state) {
+    case "syncing":
+      return "Sincronizando…";
+    case "offline":
+      return "Sem conexão. Suas mudanças serão enviadas quando voltar a internet.";
+    case "error":
+      return `Não foi possível sincronizar: ${sync.message}`;
+    case "ok":
+      return `Sincronizado às ${new Date(sync.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}.`;
+    default:
+      return "Aguardando a primeira sincronização.";
+  }
+}
+function OnlineAccountContent({
+  user,
+  sync,
+  onSyncNow,
+}: {
+  user: User;
+  sync?: SyncStatus;
+  onSyncNow?: () => void;
+}) {
   const [name, setName] = useState(user.name),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
@@ -167,6 +190,17 @@ function OnlineAccountContent({ user }: { user: User }) {
         <input readOnly value={user.email} />
       </label>
       <p>O acesso é por um código enviado ao seu e-mail. Não há senha.</p>
+      {sync && <p role="status">{syncLabel(sync)}</p>}
+      {onSyncNow && (
+        <button
+          type="button"
+          className="button secondary"
+          disabled={sync?.state === "syncing"}
+          onClick={onSyncNow}
+        >
+          Sincronizar agora
+        </button>
+      )}
       {message && <p role="status">{message}</p>}
       <button className="button primary" disabled={busy}>
         Salvar nome
@@ -174,9 +208,17 @@ function OnlineAccountContent({ user }: { user: User }) {
     </form>
   );
 }
-export function AccountContent({ user }: { user: User }) {
+export function AccountContent({
+  user,
+  sync,
+  onSyncNow,
+}: {
+  user: User;
+  sync?: SyncStatus;
+  onSyncNow?: () => void;
+}) {
   return emailAuth ? (
-    <OnlineAccountContent user={user} />
+    <OnlineAccountContent user={user} sync={sync} onSyncNow={onSyncNow} />
   ) : (
     <LocalAccountContent user={user} />
   );

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Search, WifiOff } from "lucide-react";
 import { registerSW } from "virtual:pwa-register";
-import { services } from "../adapters";
+import { services, startCloudSync } from "../adapters";
+import type { SyncStatus } from "../data/cloudSync";
 import { homeContext, type Trip, type User } from "../domain/models";
 import { Auth } from "../features/Auth";
 import { Trips } from "../features/Trips";
@@ -53,7 +54,8 @@ export function App() {
     [invite, setInvite] = useState(""),
     [inviteStatus, setInviteStatus] = useState(""),
     [now, setNow] = useState(new Date()),
-    [recovery, setRecovery] = useState("");
+    [recovery, setRecovery] = useState(""),
+    [sync, setSync] = useState<SyncStatus>({ state: "idle" });
   const photosInput = useRef<HTMLInputElement>(null);
   const route = entries[entries.length - 1];
   const backLabel =
@@ -123,6 +125,22 @@ export function App() {
   useEffect(() => {
     requestAnimationFrame(() => window.scrollTo(0, route.scroll));
   }, [route.id]);
+  const syncNow = useRef<(() => Promise<void> | void) | null>(null);
+  const refreshRef = useRef<() => Promise<void>>(async () => {});
+  useEffect(() => {
+    if (!user) return;
+    const service = startCloudSync(
+      user,
+      () => void refreshRef.current(),
+      setSync,
+    );
+    syncNow.current = service ? service.run : null;
+    return () => {
+      service?.stop();
+      syncNow.current = null;
+      setSync({ state: "idle" });
+    };
+  }, [user?.id]);
   async function refresh(id?: string) {
     if (!user) return;
     const list = await services.trips.list(user.id);
@@ -138,6 +156,7 @@ export function App() {
       setEntries([rootEntry()]);
     }
   }
+  refreshRef.current = () => refresh();
   function selectTrip(t: Trip) {
     setTrip(t);
     setMenu(null);
@@ -235,7 +254,10 @@ export function App() {
             </div>
             {trip && (
               <div className="header-context">
-                <button className="header-trip" onClick={() => setMenu("trips")}>
+                <button
+                  className="header-trip"
+                  onClick={() => setMenu("trips")}
+                >
                   <span>{trip.name}</span>
                   <ChevronDown size={16} />
                 </button>
@@ -363,7 +385,11 @@ export function App() {
             menu === "Configurações") && (
             <Modal title={menu} onClose={() => setMenu(null)}>
               {menu === "Conta" ? (
-                <AccountContent user={user} />
+                <AccountContent
+                  user={user}
+                  sync={sync}
+                  onSyncNow={() => void syncNow.current?.()}
+                />
               ) : menu === "Amigos" ? (
                 <FriendsContent user={user} />
               ) : (

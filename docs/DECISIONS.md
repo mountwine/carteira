@@ -240,3 +240,5 @@ etapa atual não são proibições permanentes.
 
 - Decisão do usuário: substituir conta e senha local por e-mail + código, e levar as viagens para qualquer aparelho com o mesmo e-mail. Referência: app de investimentos do usuário (Supabase Auth, SMTP próprio, modelo "Magic Link" com `{{ .Token }}`).
 - Consequência: backend Supabase passa a existir; somente a chave pública (anon) vai ao navegador, a proteção dos dados é por RLS. Sincronização ainda não implementada (etapas 2 e 3 em PROJECT_STATE).
+- Decisões de 30/10/2026 sobre compartilhamento: viagem pertence a uma conta e é compartilhada por **código de viagem** de 6 símbolos maiúsculos sem ambíguos (`2345679ACDEF`), permanente até o dono gerar outro; quem entra informa só o nome (conta logada obrigatória); todos os participantes editam, dono remove/gera código, qualquer um sai. Risco aceito: ~3 milhões de combinações, mitigado por conta obrigatória e 10 tentativas erradas por hora. Documentos pessoais ficam privados de quem os enviou (etapa 3).
+- Sincronização espelha o armazenamento local (offline primeiro), em vez de tornar o servidor a fonte única.
