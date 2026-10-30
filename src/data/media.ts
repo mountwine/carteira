@@ -14,6 +14,10 @@ export interface Photo {
   metadataDate?: boolean;
   deleted?: boolean;
   createdAt: string;
+  /** Set when an edit was made; used to pick the newest version across devices. */
+  updatedAt?: string;
+  /** Photo that came from another device: "stub" = data only, "thumb" = thumbnail only. */
+  remote?: "stub" | "thumb";
 }
 function image(blob: Blob) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -188,10 +192,39 @@ export function subscribeToPhotos(
     events.removeEventListener("travel-os-media", load);
   };
 }
+const notifyMedia = () => {
+  if (typeof window !== "undefined")
+    window.dispatchEvent(new Event("travel-os-media"));
+};
+let fullPhotoLoader: ((photo: Photo) => Promise<Blob>) | null = null;
+/** Lets the cloud sync fetch the full-size picture the first time it is opened. */
+export function setPhotoLoader(
+  loader: ((photo: Photo) => Promise<Blob>) | null,
+) {
+  fullPhotoLoader = loader;
+}
+/** Saves an edited photo, stamping the time so devices can tell which edit is newer. */
+export async function savePhoto(photo: Photo) {
+  await put("media", { ...photo, updatedAt: new Date().toISOString() });
+  notifyMedia();
+}
 export async function mediaBlob(id: string, thumb = false) {
   const photo = await get<Photo>("media", id);
   if (!photo || photo.deleted) throw new Error("Foto indisponível.");
-  return thumb ? photo.thumbnail : photo.blob;
+  if (photo.remote === "stub") throw new Error("Foto ainda não baixada.");
+  if (thumb) return photo.thumbnail;
+  if (photo.remote && fullPhotoLoader) {
+    try {
+      const blob = await fullPhotoLoader(photo);
+      const { remote: _remote, ...complete } = photo;
+      await put("media", { ...complete, blob });
+      notifyMedia();
+      return blob;
+    } catch {
+      /* offline or not uploaded yet: show the thumbnail meanwhile */
+    }
+  }
+  return photo.blob;
 }
 
 /** Non-destructive import of V1 memory image attachments. Source records remain intact. */

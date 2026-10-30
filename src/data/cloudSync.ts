@@ -103,8 +103,8 @@ export const recordHash = (r: AnyEntity) =>
 
 const tripMark = (uid: string, id: string) => `sync:${uid}:trip:${id}`;
 const recMark = (uid: string, id: string) => `sync:${uid}:rec:${id}`;
-const cursorId = (uid: string, tripId: string) =>
-  `sync:${uid}:cursor:${tripId}`;
+const cursorId = (uid: string, tripId: string, pass = "") =>
+  `sync:${uid}:cursor:${tripId}${pass}`;
 const OVERLAP_MS = 5000;
 const newer = (a: string | undefined, b: string | undefined) =>
   Date.parse(a ?? "") > Date.parse(b ?? "");
@@ -138,6 +138,7 @@ export async function syncOnce(
   remote: Remote,
   store: LocalStore,
   now: () => Date = () => new Date(),
+  options: { trips?: boolean; only?: "photo" } = {},
 ): Promise<SyncOutcome> {
   const outcome: SyncOutcome = {
     tripsChanged: false,
@@ -158,78 +159,80 @@ export async function syncOnce(
     });
 
   // ---- Trips ----------------------------------------------------------
-  let trips = store.trips();
-  const remoteTrips = await remote.fetchTrips();
-  const adopt = async (r: RemoteTrip, local?: Trip) => {
-    if (local) await backup(local, local.id, "sync-conflict-trip");
-    const next: Trip = {
-      ...r.data,
-      deleted: r.deleted || undefined,
-      version: (local?.version ?? 0) + 1,
-    };
-    trips = [...trips.filter((t) => t.id !== r.id), next];
-    store.saveTrips(trips);
-    await store.putMark({
-      id: tripMark(uid, r.id),
-      remoteVersion: r.version,
-      hash: tripHash(next),
-    });
-    outcome.tripsChanged = true;
-    touched.add(r.id);
-    outcome.pulled++;
-  };
-  for (const r of remoteTrips) {
-    const local = trips.find((t) => t.id === r.id);
-    const mark = (await store.getMark(tripMark(uid, r.id))) as
-      SyncMark | undefined;
-    if (!local) {
-      await adopt(r);
-      continue;
-    }
-    if (mark && mark.remoteVersion === r.version) continue;
-    const dirty = !mark || tripHash(local) !== mark.hash;
-    if (!dirty || r.version > (mark?.remoteVersion ?? 0))
-      await adopt(r, dirty ? local : undefined);
-  }
-  for (const local of trips.filter((t) => isMine(t, uid) && !t.isDemo)) {
-    const r = remoteTrips.find((x) => x.id === local.id);
-    const mark = (await store.getMark(tripMark(uid, local.id))) as
-      SyncMark | undefined;
-    const current = store.trips().find((t) => t.id === local.id);
-    if (!current) continue;
-    if (!r && mark) continue; // access lost (left the trip): keep the local copy untouched
-    if (mark && tripHash(current) === mark.hash) continue;
-    let result: PushResult;
-    try {
-      result = await remote.pushTrip(
-        current.id,
-        r ? (mark?.remoteVersion ?? r.version) : null,
-        { ...current, version: undefined } as Trip,
-        !!current.deleted,
-      );
-    } catch (e) {
-      if (/ACCESS/.test(String((e as Error)?.message))) continue;
-      throw e;
-    }
-    if (result.ok) {
+  if (options.trips !== false) {
+    let trips = store.trips();
+    const remoteTrips = await remote.fetchTrips();
+    const adopt = async (r: RemoteTrip, local?: Trip) => {
+      if (local) await backup(local, local.id, "sync-conflict-trip");
+      const next: Trip = {
+        ...r.data,
+        deleted: r.deleted || undefined,
+        version: (local?.version ?? 0) + 1,
+      };
+      trips = [...trips.filter((t) => t.id !== r.id), next];
+      store.saveTrips(trips);
       await store.putMark({
-        id: tripMark(uid, current.id),
-        remoteVersion: result.version,
-        hash: tripHash(current),
+        id: tripMark(uid, r.id),
+        remoteVersion: r.version,
+        hash: tripHash(next),
       });
-      outcome.pushed++;
-    } else if (result.reason === "conflict" && result.data) {
-      await adopt(
-        {
-          id: current.id,
-          data: result.data as Trip,
-          version: result.version ?? 0,
-          deleted: !!result.deleted,
-          updatedAt: result.updatedAt ?? "",
-          joinCode: "",
-        },
-        current,
-      );
+      outcome.tripsChanged = true;
+      touched.add(r.id);
+      outcome.pulled++;
+    };
+    for (const r of remoteTrips) {
+      const local = trips.find((t) => t.id === r.id);
+      const mark = (await store.getMark(tripMark(uid, r.id))) as
+        SyncMark | undefined;
+      if (!local) {
+        await adopt(r);
+        continue;
+      }
+      if (mark && mark.remoteVersion === r.version) continue;
+      const dirty = !mark || tripHash(local) !== mark.hash;
+      if (!dirty || r.version > (mark?.remoteVersion ?? 0))
+        await adopt(r, dirty ? local : undefined);
+    }
+    for (const local of trips.filter((t) => isMine(t, uid) && !t.isDemo)) {
+      const r = remoteTrips.find((x) => x.id === local.id);
+      const mark = (await store.getMark(tripMark(uid, local.id))) as
+        SyncMark | undefined;
+      const current = store.trips().find((t) => t.id === local.id);
+      if (!current) continue;
+      if (!r && mark) continue; // access lost (left the trip): keep the local copy untouched
+      if (mark && tripHash(current) === mark.hash) continue;
+      let result: PushResult;
+      try {
+        result = await remote.pushTrip(
+          current.id,
+          r ? (mark?.remoteVersion ?? r.version) : null,
+          { ...current, version: undefined } as Trip,
+          !!current.deleted,
+        );
+      } catch (e) {
+        if (/ACCESS/.test(String((e as Error)?.message))) continue;
+        throw e;
+      }
+      if (result.ok) {
+        await store.putMark({
+          id: tripMark(uid, current.id),
+          remoteVersion: result.version,
+          hash: tripHash(current),
+        });
+        outcome.pushed++;
+      } else if (result.reason === "conflict" && result.data) {
+        await adopt(
+          {
+            id: current.id,
+            data: result.data as Trip,
+            version: result.version ?? 0,
+            deleted: !!result.deleted,
+            updatedAt: result.updatedAt ?? "",
+            joinCode: "",
+          },
+          current,
+        );
+      }
     }
   }
 
@@ -238,8 +241,9 @@ export async function syncOnce(
   for (const trip of mineTrips) {
     const known = await store.getMark(tripMark(uid, trip.id));
     if (!known) continue; // never reached the server yet
-    const cursor = (await store.getMark(cursorId(uid, trip.id))) as
-      Cursor | undefined;
+    const cursor = (await store.getMark(
+      cursorId(uid, trip.id, options.only ? ":" + options.only : ""),
+    )) as Cursor | undefined;
     const since = cursor
       ? new Date(Date.parse(cursor.at) - OVERLAP_MS).toISOString()
       : null;
@@ -265,7 +269,11 @@ export async function syncOnce(
       touched.add(trip.id);
       outcome.pulled++;
     };
+    // Photos have their own pass (and their own cursor); everything else goes in the main one.
+    const wanted = (kind: string) =>
+      options.only === "photo" ? kind === "photo" : kind !== "photo";
     for (const r of incoming) {
+      if (!wanted(r.kind)) continue;
       if (r.updatedAt > newest) newest = r.updatedAt;
       const mark = (await store.getMark(recMark(uid, r.id))) as
         SyncMark | undefined;
@@ -285,7 +293,10 @@ export async function syncOnce(
       }
     }
     if (newest && newest !== cursor?.at)
-      await store.putMark({ id: cursorId(uid, trip.id), at: newest });
+      await store.putMark({
+        id: cursorId(uid, trip.id, options.only ? ":" + options.only : ""),
+        at: newest,
+      });
 
     // push what changed here
     local = new Map((await store.records()).map((r) => [r.id, r]));
@@ -376,6 +387,8 @@ export function createSyncService(options: {
   store: LocalStore;
   onTripsChanged: () => void;
   onStatus?: (status: SyncStatus) => void;
+  /** Runs after each successful round, e.g. to sync picture files. */
+  afterSync?: () => Promise<void>;
 }) {
   let running: Promise<void> | null = null;
   let again = false;
@@ -397,6 +410,7 @@ export function createSyncService(options: {
         status({ state: "syncing" });
         const out = await syncOnce(options.uid, options.remote, options.store);
         if (out.tripsChanged) options.onTripsChanged();
+        await options.afterSync?.();
         status({ state: "ok", at: new Date().toISOString() });
       } catch (e) {
         status({
@@ -426,6 +440,7 @@ export function createSyncService(options: {
         if (document.visibilityState === "visible") void run();
       };
       window.addEventListener("online", poke);
+      window.addEventListener("travel-os-media", poke);
       document.addEventListener("visibilitychange", visible);
       const channel =
         typeof BroadcastChannel !== "undefined"
@@ -434,6 +449,7 @@ export function createSyncService(options: {
       channel?.addEventListener("message", poke);
       cleanups.push(
         () => window.removeEventListener("online", poke),
+        () => window.removeEventListener("travel-os-media", poke),
         () => document.removeEventListener("visibilitychange", visible),
         () => channel?.close(),
       );
