@@ -1,5 +1,5 @@
 // Provider-neutral server endpoint. Provider credentials and trip data stay server-side.
-import { searchGeoapify } from "./providers/geoapify";
+import { searchGeoapify } from "./providers/geoapify.js";
 
 declare const process: { env: Record<string, string | undefined> };
 
