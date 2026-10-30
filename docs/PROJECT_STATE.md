@@ -65,6 +65,10 @@ migração ou limpeza de dados foi feita.
 - Telas largas (>= 900 px): navegação vira trilho lateral.
 - Validação: `pnpm typecheck`, `pnpm test` (90 testes) e `pnpm build` passaram. Conferido no navegador em 402 px e 1280 px: entrada, Início (duas cidades), Roteiro vazio, Mais, Reservas, Gastos, Compras, Bagagem, Documentos, Viajantes, Conversor, SOS e formulários. Não conferidos: Roteiro com atividades, Álbum e visualizador, mapa, impressão e dispositivo físico.
 
+## Publicação
+
+O projeto Vercel `foravento-v1.2-vercel-source` (com a chave Geoapify no ambiente) está ligado a `mountwine/carteira`, Node 24.x. Cada branch gera um preview; a busca de lugares só responde no endereço igual a `ALLOWED_ORIGIN`, então não funciona nos previews. Produção só muda com merge na `main`.
+
 ## Fonte e limites
 
 Baseado na auditoria de 06/10/2026, código, testes, README e [QA histórica](QA.md)
