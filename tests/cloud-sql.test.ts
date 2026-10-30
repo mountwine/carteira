@@ -74,10 +74,21 @@ beforeAll(async () => {
   await db.exec(`create role anon; create role authenticated; create schema auth;
     create table auth.users(id uuid primary key);
     create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
-    grant usage on schema auth to authenticated; grant execute on function auth.uid() to authenticated;`);
+    grant usage on schema auth to authenticated; grant execute on function auth.uid() to authenticated;
+    create schema storage;
+    create table storage.buckets(id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
+    create table storage.objects(id uuid default gen_random_uuid(), bucket_id text, name text);
+    alter table storage.objects enable row level security;
+    grant usage on schema storage to authenticated; grant select,insert,update,delete on storage.objects to authenticated;`);
   await db.exec(
     readFileSync(
       new URL("../supabase/cloud/001_sync.sql", import.meta.url),
+      "utf8",
+    ),
+  );
+  await db.exec(
+    readFileSync(
+      new URL("../supabase/cloud/002_photos.sql", import.meta.url),
       "utf8",
     ),
   );
@@ -308,5 +319,82 @@ describe("PostgreSQL real: sincronização e código de viagem", () => {
     await expect(
       pushRecords([row(crypto.randomUUID(), { owner_id: guest })]),
     ).rejects.toThrow("ACCESS");
+  });
+});
+
+describe("PostgreSQL real: espaço privado das fotos", () => {
+  const photoTrip = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+  const put = (name: string, bucket = "trip-photos") =>
+    db.query("insert into storage.objects(bucket_id,name) values($1,$2)", [
+      bucket,
+      name,
+    ]);
+  const visible = async () =>
+    (
+      await db.query<{ name: string }>(
+        "select name from storage.objects order by name",
+      )
+    ).rows.map((r) => r.name);
+
+  it("o dono da viagem guarda e vê as fotos da pasta da viagem", async () => {
+    await as(owner);
+    await db.query("select public.push_cloud_trip($1,null,$2,false)", [
+      photoTrip,
+      JSON.stringify({ id: photoTrip, members: [member(owner, "Leo")] }),
+    ]);
+    await put(`${photoTrip}/p1.jpg`);
+    await put(`${photoTrip}/p1.thumb.jpg`);
+    expect(await visible()).toEqual([
+      `${photoTrip}/p1.jpg`,
+      `${photoTrip}/p1.thumb.jpg`,
+    ]);
+  });
+
+  it("quem não participa não vê nem grava na pasta", async () => {
+    await as(outsider);
+    expect(await visible()).toEqual([]);
+    await expect(put(`${photoTrip}/intruso.jpg`)).rejects.toThrow();
+  });
+
+  it("quem entra pelo código passa a ver e a gravar; ao sair, perde o acesso", async () => {
+    await as(owner);
+    const c = (
+      await db.query<{ join_code: string }>(
+        "select join_code from public.cloud_trips where id=$1",
+        [photoTrip],
+      )
+    ).rows[0].join_code;
+    await as(guest);
+    await db.query("select public.join_cloud_trip($1,'Maya')", [c]);
+    await put(`${photoTrip}/da-maya.jpg`);
+    expect((await visible()).length).toBe(3);
+    await db.query("select public.leave_cloud_trip($1)", [photoTrip]);
+    expect(await visible()).toEqual([]);
+    await expect(put(`${photoTrip}/depois.jpg`)).rejects.toThrow();
+  });
+
+  it("recusa caminho fora do formato e outro espaço de arquivos", async () => {
+    await as(owner);
+    await expect(put("sem-pasta.jpg")).rejects.toThrow();
+    await expect(put("nao-e-uuid/x.jpg")).rejects.toThrow();
+    await expect(put(`${photoTrip}/x.jpg`, "outro")).rejects.toThrow();
+    expect(
+      (await db.query("select public.cloud_path_trip('lixo') v")).rows[0],
+    ).toEqual({ v: null });
+  });
+
+  it("participante apaga arquivos da viagem; de outra viagem, não", async () => {
+    await as(owner);
+    await db.query("delete from storage.objects where name=$1", [
+      `${photoTrip}/da-maya.jpg`,
+    ]);
+    expect(await visible()).toEqual([
+      `${photoTrip}/p1.jpg`,
+      `${photoTrip}/p1.thumb.jpg`,
+    ]);
+    await as(outsider);
+    await db.query("delete from storage.objects");
+    await as(owner);
+    expect((await visible()).length).toBe(2);
   });
 });
