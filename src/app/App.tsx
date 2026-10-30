@@ -6,6 +6,7 @@ import type { SyncStatus } from "../data/cloudSync";
 import { homeContext, type Trip, type User } from "../domain/models";
 import { Auth } from "../features/Auth";
 import { JoinTrip } from "../features/JoinTrip";
+import { readLastView, writeLastView } from "./lastView";
 import { Trips } from "../features/Trips";
 import { TripEditor } from "../features/TripEditor";
 import { TravelProvider, type Screen } from "../data/TravelContext";
@@ -86,13 +87,34 @@ export function App() {
   useEffect(() => {
     setTrip(null);
     setTrips([]);
+    restored.current = false;
     if (user) {
       void services.trips
         .list(user.id)
-        .then(setTrips)
-        .catch((e) => setError(e.message));
+        .then((list) => {
+          setTrips(list);
+          const saved = readLastView(user.id);
+          const found = saved && list.find((t) => t.id === saved.tripId);
+          if (saved && found) {
+            setTrip(found);
+            setEntries([rootEntry(saved.screen)]);
+            history.replaceState({ travelOS: true }, "");
+          }
+          restored.current = true;
+        })
+        .catch((e) => {
+          restored.current = true;
+          setError(e.message);
+        });
     }
   }, [user?.id]);
+  useEffect(() => {
+    if (!user || !restored.current) return;
+    writeLastView(
+      user.id,
+      trip ? { tripId: trip.id, screen: route.screen } : null,
+    );
+  }, [user?.id, trip?.id, route.screen]);
   useEffect(() => {
     if (!user) return;
     const code = sessionStorage.getItem("travel-os:recovery");
@@ -124,6 +146,7 @@ export function App() {
   useEffect(() => {
     requestAnimationFrame(() => window.scrollTo(0, route.scroll));
   }, [route.id]);
+  const restored = useRef(false);
   const syncNow = useRef<(() => Promise<void> | void) | null>(null);
   const refreshRef = useRef<() => Promise<void>>(async () => {});
   useEffect(() => {

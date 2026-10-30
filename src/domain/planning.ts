@@ -29,6 +29,19 @@ export function ordered(records: Entity<"activity">[]) {
       a.id.localeCompare(b.id),
   );
 }
+/** Next activity not done from now on: the rest of today, then the following days. */
+export function nextActivity(
+  activities: Entity<"activity">[],
+  date: string,
+  time: string,
+) {
+  return ordered(activities).find(
+    (a) =>
+      a.data.status !== "done" &&
+      (a.data.date > date ||
+        (a.data.date === date && (!a.data.time || a.data.time >= time))),
+  );
+}
 export function distance(a: [number, number], b: [number, number]) {
   const rad = (n: number) => (n * Math.PI) / 180;
   const h =
